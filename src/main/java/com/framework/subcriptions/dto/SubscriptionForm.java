@@ -1,6 +1,7 @@
 package com.framework.subcriptions.dto;
 
 import com.framework.subcriptions.domain.BillingCycle;
+import com.framework.subcriptions.domain.Currency;
 import com.framework.subcriptions.domain.Subscription;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,6 +16,7 @@ public class SubscriptionForm {
 
     private String serviceName;
     private Integer price;
+    private Currency currency;
     private BillingCycle billingCycle;
     private LocalDate startedAt;
     private boolean autoRenew;
@@ -23,6 +25,7 @@ public class SubscriptionForm {
         return Subscription.builder()
                 .serviceName(serviceName)
                 .price(price)
+                .currency(currency)
                 .billingCycle(billingCycle)
                 .startedAt(startedAt)
                 .autoRenew(autoRenew)

@@ -9,8 +9,17 @@
         </label>
     </p>
     <p>
-        <label>금액(원)<br>
+        <label>금액<br>
             <input type="number" name="price" min="0" value="{{subscription.price}}" required>
+        </label>
+    </p>
+    <p>
+        <label>통화<br>
+            <select name="currency" required>
+                {{#currencies}}
+                <option value="{{name}}">{{label}}</option>
+                {{/currencies}}
+            </select>
         </label>
     </p>
     <p>
@@ -41,6 +50,7 @@
 </form>
 
 <script>
+    document.querySelector('select[name="currency"]').value = "{{subscription.currency.name}}";
     document.querySelector('select[name="billingCycle"]').value = "{{subscription.billingCycle.name}}";
 </script>
 

@@ -1,6 +1,7 @@
 package com.framework.subcriptions.controller;
 
 import com.framework.subcriptions.domain.BillingCycle;
+import com.framework.subcriptions.domain.Currency;
 import com.framework.subcriptions.dto.SubscriptionForm;
 import com.framework.subcriptions.service.SubscriptionService;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,7 @@ public class SubscriptionController {
     public String newForm(Model model) {
         model.addAttribute("title", "구독 등록");
         model.addAttribute("cycles", BillingCycle.values());
+        model.addAttribute("currencies", Currency.values());
         return "subscriptions/new";
     }
 
@@ -50,6 +52,7 @@ public class SubscriptionController {
         model.addAttribute("title", "구독 수정");
         model.addAttribute("subscription", service.findById(id));
         model.addAttribute("cycles", BillingCycle.values());
+        model.addAttribute("currencies", Currency.values());
         return "subscriptions/edit";
     }
 

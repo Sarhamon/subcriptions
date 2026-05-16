@@ -28,6 +28,10 @@ public class Subscription {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    private Currency currency;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private BillingCycle billingCycle;
 
     @Column(nullable = false)
@@ -44,16 +48,13 @@ public class Subscription {
         this.startedAt = getNextRenewalDate();
     }
 
-    public void updateDetails(String serviceName, Integer price, BillingCycle billingCycle,
-                              LocalDate startedAt, boolean autoRenew) {
+    public void updateDetails(String serviceName, Integer price, Currency currency,
+                              BillingCycle billingCycle, LocalDate startedAt, boolean autoRenew) {
         this.serviceName = serviceName;
         this.price = price;
+        this.currency = currency;
         this.billingCycle = billingCycle;
         this.startedAt = startedAt;
         this.autoRenew = autoRenew;
-    }
-
-    public String getFormattedPrice() {
-        return String.format("%,d", price);
     }
 }

@@ -9,8 +9,17 @@
         </label>
     </p>
     <p>
-        <label>금액(원)<br>
+        <label>금액<br>
             <input type="number" name="price" min="0" required>
+        </label>
+    </p>
+    <p>
+        <label>통화<br>
+            <select name="currency" required>
+                {{#currencies}}
+                <option value="{{name}}">{{label}}</option>
+                {{/currencies}}
+            </select>
         </label>
     </p>
     <p>

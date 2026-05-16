@@ -3,6 +3,7 @@ package com.framework.subcriptions.service;
 import com.framework.subcriptions.domain.Subscription;
 import com.framework.subcriptions.domain.SubscriptionNotFoundException;
 import com.framework.subcriptions.dto.SubscriptionForm;
+import com.framework.subcriptions.dto.SubscriptionView;
 import com.framework.subcriptions.repository.SubscriptionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,21 +18,24 @@ import java.util.List;
 public class SubscriptionService {
 
     private final SubscriptionRepository repository;
+    private final ExchangeRateService exchangeRateService;
 
     @Transactional
-    public List<Subscription> findAll() {
+    public List<SubscriptionView> findAll() {
         LocalDate today = LocalDate.now();
         List<Subscription> all = repository.findAll();
         all.forEach(s -> applyRenewalIfDue(s, today));
-        return all;
+        return all.stream()
+                .map(s -> new SubscriptionView(s, exchangeRateService))
+                .toList();
     }
 
     @Transactional
-    public Subscription findById(Long id) {
+    public SubscriptionView findById(Long id) {
         Subscription subscription = repository.findById(id)
                 .orElseThrow(() -> new SubscriptionNotFoundException(id));
         applyRenewalIfDue(subscription, LocalDate.now());
-        return subscription;
+        return new SubscriptionView(subscription, exchangeRateService);
     }
 
     @Transactional
@@ -46,6 +50,7 @@ public class SubscriptionService {
         existing.updateDetails(
                 form.getServiceName(),
                 form.getPrice(),
+                form.getCurrency(),
                 form.getBillingCycle(),
                 form.getStartedAt(),
                 form.isAutoRenew()
