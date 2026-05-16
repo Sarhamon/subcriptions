@@ -1,5 +1,9 @@
 # subcriptions
 
+> 🚧 **현재 상태: 초기 스캐폴드 (틀만 구성)**
+> Mustache 레이아웃(`header`/`footer`/`index`)과 홈 컨트롤러 정도만 작성된 단계.
+> 핵심 기능(구독 CRUD · 관리자 인증 · 갱신 알림)은 **아직 미구현**.
+
 내가 가입한 여러 구독 서비스를 한 곳에서 관리하고, 갱신일이 다가오면 알려주는 **개인용 구독 트래커**.
 
 > 📚 Spring Boot 팀 프로젝트
@@ -67,8 +71,8 @@
 ./gradlew bootRun
 ```
 
-기본 포트: `http://localhost:8080`
-H2 콘솔: `http://localhost:8080/h2-console` (설정 후)
+기본 포트: `http://localhost:8081` (8080은 학교 실습 환경에서 점거되는 경우가 잦아 8081로 지정)
+H2 콘솔: `http://localhost:8081/h2-console` (설정 후)
 
 ---
 
