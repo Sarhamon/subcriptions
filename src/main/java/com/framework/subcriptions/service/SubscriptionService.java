@@ -38,6 +38,28 @@ public class SubscriptionService {
         return repository.save(form.toEntity());
     }
 
+    @Transactional
+    public Subscription update(Long id, SubscriptionForm form) {
+        Subscription existing = repository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Subscription not found: " + id));
+        existing.updateDetails(
+                form.getServiceName(),
+                form.getPrice(),
+                form.getBillingCycle(),
+                form.getStartedAt(),
+                form.isAutoRenew()
+        );
+        return existing;
+    }
+
+    @Transactional
+    public void delete(Long id) {
+        if (!repository.existsById(id)) {
+            throw new IllegalArgumentException("Subscription not found: " + id);
+        }
+        repository.deleteById(id);
+    }
+
     private void applyRenewalIfDue(Subscription subscription, LocalDate today) {
         while (!subscription.getNextRenewalDate().isAfter(today)) {
             subscription.slideToNextCycle();

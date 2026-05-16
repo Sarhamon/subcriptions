@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -34,6 +35,33 @@ public class SubscriptionController {
     @PostMapping
     public String create(SubscriptionForm form) {
         service.create(form);
+        return "redirect:/subscriptions";
+    }
+
+    @GetMapping("/{id}")
+    public String show(@PathVariable Long id, Model model) {
+        model.addAttribute("title", "구독 상세");
+        model.addAttribute("subscription", service.findById(id));
+        return "subscriptions/show";
+    }
+
+    @GetMapping("/{id}/edit")
+    public String editForm(@PathVariable Long id, Model model) {
+        model.addAttribute("title", "구독 수정");
+        model.addAttribute("subscription", service.findById(id));
+        model.addAttribute("cycles", BillingCycle.values());
+        return "subscriptions/edit";
+    }
+
+    @PostMapping("/{id}/update")
+    public String update(@PathVariable Long id, SubscriptionForm form) {
+        service.update(id, form);
+        return "redirect:/subscriptions/" + id;
+    }
+
+    @PostMapping("/{id}/delete")
+    public String delete(@PathVariable Long id) {
+        service.delete(id);
         return "redirect:/subscriptions";
     }
 }

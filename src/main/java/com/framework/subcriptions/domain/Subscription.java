@@ -43,4 +43,13 @@ public class Subscription {
     public void slideToNextCycle() {
         this.startedAt = getNextRenewalDate();
     }
+
+    public void updateDetails(String serviceName, Integer price, BillingCycle billingCycle,
+                              LocalDate startedAt, boolean autoRenew) {
+        this.serviceName = serviceName;
+        this.price = price;
+        this.billingCycle = billingCycle;
+        this.startedAt = startedAt;
+        this.autoRenew = autoRenew;
+    }
 }

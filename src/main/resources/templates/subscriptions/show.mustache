@@ -1,0 +1,24 @@
+{{>layouts/header}}
+
+<h1>{{subscription.serviceName}}</h1>
+
+<article>
+    <ul>
+        <li>금액: {{subscription.price}}원 / {{subscription.billingCycle.label}}</li>
+        <li>시작일(또는 마지막 갱신일): {{subscription.startedAt}}</li>
+        <li>다음 갱신일: {{subscription.nextRenewalDate}}</li>
+        <li>자동 결제: {{#subscription.autoRenew}}자동{{/subscription.autoRenew}}{{^subscription.autoRenew}}수동{{/subscription.autoRenew}}</li>
+    </ul>
+</article>
+
+<p>
+    <a href="/subscriptions/{{subscription.id}}/edit">수정</a>
+    <a href="/subscriptions">목록</a>
+</p>
+
+<form action="/subscriptions/{{subscription.id}}/delete" method="post"
+      onsubmit="return confirm('정말 삭제하시겠습니까?');">
+    <button type="submit" class="danger">삭제</button>
+</form>
+
+{{>layouts/footer}}

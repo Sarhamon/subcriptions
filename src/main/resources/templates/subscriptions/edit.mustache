@@ -1,0 +1,47 @@
+{{>layouts/header}}
+
+<h1>구독 수정</h1>
+
+<form action="/subscriptions/{{subscription.id}}/update" method="post">
+    <p>
+        <label>서비스명<br>
+            <input type="text" name="serviceName" value="{{subscription.serviceName}}" required>
+        </label>
+    </p>
+    <p>
+        <label>금액(원)<br>
+            <input type="number" name="price" min="0" value="{{subscription.price}}" required>
+        </label>
+    </p>
+    <p>
+        <label>결제 주기<br>
+            <select name="billingCycle" required>
+                {{#cycles}}
+                <option value="{{name}}">{{label}}</option>
+                {{/cycles}}
+            </select>
+        </label>
+    </p>
+    <p>
+        <label>시작일<br>
+            <input type="date" name="startedAt" value="{{subscription.startedAt}}" required>
+        </label>
+    </p>
+    <p>
+        <label>
+            <input type="checkbox" name="autoRenew" value="true"
+                   {{#subscription.autoRenew}}checked{{/subscription.autoRenew}}>
+            자동 결제
+        </label>
+    </p>
+    <p>
+        <button type="submit">저장</button>
+        <a href="/subscriptions/{{subscription.id}}">취소</a>
+    </p>
+</form>
+
+<script>
+    document.querySelector('select[name="billingCycle"]').value = "{{subscription.billingCycle.name}}";
+</script>
+
+{{>layouts/footer}}
