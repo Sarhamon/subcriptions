@@ -1,0 +1,23 @@
+{{>layouts/header}}
+
+<h1>구독 목록</h1>
+
+<p><a href="/subscriptions/new">+ 새 구독 등록</a></p>
+
+{{#subscriptions}}
+<article>
+    <h3>{{serviceName}}</h3>
+    <ul>
+        <li>금액: {{price}}원 / {{billingCycle}}</li>
+        <li>시작일(또는 마지막 갱신일): {{startedAt}}</li>
+        <li>다음 갱신일: {{nextRenewalDate}}</li>
+        <li>자동 결제: {{autoRenew}}</li>
+    </ul>
+</article>
+{{/subscriptions}}
+
+{{^subscriptions}}
+<p>등록된 구독이 없습니다.</p>
+{{/subscriptions}}
+
+{{>layouts/footer}}

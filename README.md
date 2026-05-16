@@ -92,3 +92,23 @@ src/main/resources/
  ├─ application.properties
  └─ templates/       # Mustache 템플릿
 ```
+
+### Mustache 템플릿 컨벤션
+
+베이스 프로젝트(`framework_springboot`)의 패턴을 따라, **도메인별 디렉토리 + RESTful 4뷰** 구조를 사용:
+
+```
+templates/
+ ├─ layouts/             공통 헤더/푸터
+ │   ├─ header.mustache
+ │   └─ footer.mustache
+ └─ subscriptions/       구독 도메인 (예시)
+     ├─ index.mustache   목록 (GET /subscriptions)
+     ├─ new.mustache     생성 폼 (GET /subscriptions/new)
+     ├─ edit.mustache    수정 폼 (GET /subscriptions/{id}/edit)
+     └─ show.mustache    상세 (GET /subscriptions/{id})
+```
+
+- 모든 페이지는 `{{>layouts/header}}` / `{{>layouts/footer}}` partial로 공통 영역 포함
+- 페이지 제목은 `{{title}}` 변수로 컨트롤러에서 전달
+- 폼 입력용 DTO 명명: `<Entity>Form` (예: `SubscriptionForm`)
