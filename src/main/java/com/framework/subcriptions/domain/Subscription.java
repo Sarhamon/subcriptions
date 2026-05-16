@@ -52,4 +52,8 @@ public class Subscription {
         this.startedAt = startedAt;
         this.autoRenew = autoRenew;
     }
+
+    public String getFormattedPrice() {
+        return String.format("%,d", price);
+    }
 }

@@ -4,7 +4,7 @@
 
 <article>
     <ul>
-        <li>금액: {{subscription.price}}원 / {{subscription.billingCycle.label}}</li>
+        <li>금액: {{subscription.formattedPrice}}원 / {{subscription.billingCycle.label}}</li>
         <li>시작일(또는 마지막 갱신일): {{subscription.startedAt}}</li>
         <li>다음 갱신일: {{subscription.nextRenewalDate}}</li>
         <li>자동 결제: {{#subscription.autoRenew}}자동{{/subscription.autoRenew}}{{^subscription.autoRenew}}수동{{/subscription.autoRenew}}</li>

@@ -8,7 +8,7 @@
 <article>
     <h3><a href="/subscriptions/{{id}}">{{serviceName}}</a></h3>
     <ul>
-        <li>금액: {{price}}원 / {{billingCycle.label}}</li>
+        <li>금액: {{formattedPrice}}원 / {{billingCycle.label}}</li>
         <li>시작일(또는 마지막 갱신일): {{startedAt}}</li>
         <li>다음 갱신일: {{nextRenewalDate}}</li>
         <li>자동 결제: {{#autoRenew}}자동{{/autoRenew}}{{^autoRenew}}수동{{/autoRenew}}</li>

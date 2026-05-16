@@ -1,0 +1,17 @@
+{{>layouts/header}}
+
+<h1>오류가 발생했습니다</h1>
+
+<article>
+    <ul>
+        {{#status}}<li>상태: {{status}} {{error}}</li>{{/status}}
+        {{#message}}<li>메시지: {{message}}</li>{{/message}}
+        {{#path}}<li>경로: {{path}}</li>{{/path}}
+    </ul>
+</article>
+
+<p>
+    <a href="/subscriptions">구독 목록으로</a>
+</p>
+
+{{>layouts/footer}}

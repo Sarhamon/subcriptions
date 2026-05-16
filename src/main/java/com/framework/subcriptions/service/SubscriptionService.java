@@ -1,6 +1,7 @@
 package com.framework.subcriptions.service;
 
 import com.framework.subcriptions.domain.Subscription;
+import com.framework.subcriptions.domain.SubscriptionNotFoundException;
 import com.framework.subcriptions.dto.SubscriptionForm;
 import com.framework.subcriptions.repository.SubscriptionRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +29,7 @@ public class SubscriptionService {
     @Transactional
     public Subscription findById(Long id) {
         Subscription subscription = repository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Subscription not found: " + id));
+                .orElseThrow(() -> new SubscriptionNotFoundException(id));
         applyRenewalIfDue(subscription, LocalDate.now());
         return subscription;
     }
@@ -41,7 +42,7 @@ public class SubscriptionService {
     @Transactional
     public Subscription update(Long id, SubscriptionForm form) {
         Subscription existing = repository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Subscription not found: " + id));
+                .orElseThrow(() -> new SubscriptionNotFoundException(id));
         existing.updateDetails(
                 form.getServiceName(),
                 form.getPrice(),
@@ -55,7 +56,7 @@ public class SubscriptionService {
     @Transactional
     public void delete(Long id) {
         if (!repository.existsById(id)) {
-            throw new IllegalArgumentException("Subscription not found: " + id);
+            throw new SubscriptionNotFoundException(id);
         }
         repository.deleteById(id);
     }
