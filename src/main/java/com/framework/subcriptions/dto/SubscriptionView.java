@@ -8,6 +8,7 @@ import lombok.Getter;
 
 import java.time.LocalDate;
 
+// 화면 출력용 읽기 전용 DTO. 환율 환산 결과(displayPrice)를 미리 계산해 템플릿을 단순하게 유지.
 @Getter
 public class SubscriptionView {
 
@@ -21,6 +22,7 @@ public class SubscriptionView {
     private final boolean autoRenew;
     private final String displayPrice;
 
+    // 엔티티 + 환율 서비스에서 화면용 값을 즉시 채워 불변 객체로 만든다.
     public SubscriptionView(Subscription s, ExchangeRateService rateService) {
         this.id = s.getId();
         this.serviceName = s.getServiceName();
@@ -33,6 +35,7 @@ public class SubscriptionView {
         this.displayPrice = buildDisplayPrice(s, rateService);
     }
 
+    // 표시 가격 문자열을 만든다. 외화면 괄호 안에 원화 환산값을 덧붙인다.
     private static String buildDisplayPrice(Subscription s, ExchangeRateService rateService) {
         String main = String.format("%,d %s", s.getPrice(), s.getCurrency().getLabel());
         if (s.getCurrency() == Currency.KRW) {

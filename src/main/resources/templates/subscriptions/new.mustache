@@ -1,3 +1,4 @@
+{{! 신규 구독 등록 폼. 제출 시 POST /subscriptions → SubscriptionController.create. }}
 {{>layouts/header}}
 
 <h1>구독 등록</h1>
@@ -13,6 +14,7 @@
             <input type="number" name="price" min="0" required>
         </label>
     </p>
+    {{! 통화/주기 select는 컨트롤러가 enum.values()로 내려준 목록을 그대로 반복 렌더. }}
     <p>
         <label>통화<br>
             <select name="currency" required>
@@ -36,6 +38,7 @@
             <input type="date" name="startedAt" required>
         </label>
     </p>
+    {{! 체크박스: 체크돼야만 form 전송에 포함된다. 미체크 시 false로 바인딩됨. }}
     <p>
         <label>
             <input type="checkbox" name="autoRenew" value="true">

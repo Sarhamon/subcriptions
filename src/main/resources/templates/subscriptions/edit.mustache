@@ -1,3 +1,4 @@
+{{! 구독 수정 폼. new.mustache와 거의 동일하나 기존 값으로 미리 채우고 update 엔드포인트로 POST. }}
 {{>layouts/header}}
 
 <h1>구독 수정</h1>
@@ -13,6 +14,7 @@
             <input type="number" name="price" min="0" value="{{subscription.price}}" required>
         </label>
     </p>
+    {{! 통화/주기 select 옵션 목록은 동일. 현재 값 선택은 아래 script에서 처리. }}
     <p>
         <label>통화<br>
             <select name="currency" required>
@@ -36,6 +38,7 @@
             <input type="date" name="startedAt" value="{{subscription.startedAt}}" required>
         </label>
     </p>
+    {{! 기존 자동결제 값이 true면 체크된 상태로 표시. }}
     <p>
         <label>
             <input type="checkbox" name="autoRenew" value="true"
@@ -50,6 +53,7 @@
 </form>
 
 <script>
+    // Mustache의 selected 분기를 피하기 위해 렌더 후 현재 enum 값을 선택 상태로 설정.
     document.querySelector('select[name="currency"]').value = "{{subscription.currency.name}}";
     document.querySelector('select[name="billingCycle"]').value = "{{subscription.billingCycle.name}}";
 </script>

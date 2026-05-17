@@ -1,13 +1,16 @@
+{{! 모든 페이지에 포함되는 공통 헤더. HTML 시작, 상단바, 우측 슬라이드 메뉴, main 오픈까지 담당. }}
 <!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Subcriptions</title>
+    {{! title 모델이 있으면 그 값을, 없으면 기본값을 사용. }}
+    <title>{{#title}}{{title}}{{/title}}{{^title}}subcriptions{{/title}}</title>
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 <header>
+    {{! 상단 네비게이션: 좌측 브랜드 + 우측 햄버거(☰) 버튼. }}
     <nav class="topbar">
         <a href="/" class="brand">SubEco</a>
         <button type="button" class="menu-toggle" aria-label="메뉴 열기"
@@ -16,7 +19,9 @@
     </nav>
 </header>
 
+{{! 메뉴가 열렸을 때 뒤를 덮는 반투명 오버레이. 클릭 시 닫힌다. }}
 <div class="menu-overlay" onclick="toggleMenu(false)"></div>
+{{! 우측에서 슬라이드 인되는 사이드 메뉴 패널. }}
 <aside id="sideMenu" class="side-menu" aria-hidden="true">
     <div class="side-menu-header">
         <span>메뉴</span>
@@ -31,6 +36,7 @@
 </aside>
 
 <script>
+    // body에 .menu-open을 토글해 CSS가 패널/오버레이를 보이게 한다 (트랜지션은 CSS 담당).
     function toggleMenu(open) {
         document.body.classList.toggle('menu-open', open);
         var btn = document.querySelector('.menu-toggle');
@@ -38,9 +44,11 @@
         if (btn) btn.setAttribute('aria-expanded', open);
         if (panel) panel.setAttribute('aria-hidden', !open);
     }
+    // ESC 키로 닫기 단축키 제공.
     document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') toggleMenu(false);
     });
 </script>
 
+{{! 본문 영역 시작. 각 페이지가 main 안의 내용을 채우고, footer에서 닫는다. }}
 <main>

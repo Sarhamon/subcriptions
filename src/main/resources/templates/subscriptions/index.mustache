@@ -1,9 +1,11 @@
+{{! 구독 목록 화면. 카드들을 가로 스크롤 캐러셀로 보여주고, 마우스 드래그 스크롤을 지원한다. }}
 {{>layouts/header}}
 
 <h1>구독 목록</h1>
 
 <p><a href="/subscriptions/new">+ 새 구독 등록</a></p>
 
+{{! .card-carousel: 가로 flex + scroll-snap. 각 .sub-card는 상세 페이지로 이동하는 링크. }}
 <div class="card-carousel">
     {{#subscriptions}}
     <a class="sub-card" href="/subscriptions/{{id}}">
@@ -11,6 +13,7 @@
         <div class="sub-card-price">{{displayPrice}}</div>
         <div class="sub-card-cycle">{{billingCycle.label}}</div>
         <div class="sub-card-meta">다음 갱신 · {{nextRenewalDate}}</div>
+        {{! 자동/수동 결제 여부를 pill 형태 배지로 시각화. }}
         <span class="sub-card-badge {{#autoRenew}}badge-auto{{/autoRenew}}{{^autoRenew}}badge-manual{{/autoRenew}}">
             {{#autoRenew}}자동결제{{/autoRenew}}{{^autoRenew}}수동결제{{/autoRenew}}
         </span>
@@ -18,15 +21,18 @@
     {{/subscriptions}}
 </div>
 
+{{! 데이터가 비었을 때만 출력되는 안내 문구. }}
 {{^subscriptions}}
 <p>등록된 구독이 없습니다.</p>
 {{/subscriptions}}
 
 <script>
+    // 마우스 클릭+드래그로 캐러셀을 좌우로 스크롤하는 기능. 모바일 터치는 브라우저 기본 동작 사용.
     (function () {
         var carousel = document.querySelector('.card-carousel');
         if (!carousel) return;
 
+        // 드래그 상태와 시작 좌표, 그리고 rAF 배칭에 쓰는 변수들.
         var isDown = false;
         var startX = 0;
         var startScroll = 0;
@@ -35,6 +41,7 @@
         var rafId = null;
         var DRAG_THRESHOLD = 5;
 
+        // 마우스 누르면 시작점 기록. preventDefault로 텍스트 선택/링크 끌기 방지.
         carousel.addEventListener('mousedown', function (e) {
             isDown = true;
             moved = 0;
@@ -43,6 +50,7 @@
             e.preventDefault();
         });
 
+        // 드래그 종료 처리. 진행 중인 rAF도 정리.
         function endDrag() {
             if (!isDown) return;
             isDown = false;
@@ -53,9 +61,11 @@
             }
         }
 
+        // 마우스를 캐러셀 밖에서 떼도 종료되도록 window 레벨에도 부착.
         window.addEventListener('mouseup', endDrag);
         carousel.addEventListener('mouseleave', endDrag);
 
+        // 이동량을 누적하고, 임계치를 넘으면 .dragging 클래스 부여(스냅 해제 + grabbing 커서).
         carousel.addEventListener('mousemove', function (e) {
             if (!isDown) return;
             var walk = e.pageX - startX;
@@ -63,6 +73,7 @@
             if (moved > DRAG_THRESHOLD && !carousel.classList.contains('dragging')) {
                 carousel.classList.add('dragging');
             }
+            // scrollLeft 적용은 프레임당 1회로 묶어 끊김 없이 갱신.
             pendingScroll = startScroll - walk;
             if (rafId === null) {
                 rafId = requestAnimationFrame(function () {
@@ -75,10 +86,12 @@
             }
         });
 
+        // 브라우저 기본 HTML5 drag(고스트 이미지) 차단으로 끊김 현상 제거.
         carousel.addEventListener('dragstart', function (e) {
             e.preventDefault();
         });
 
+        // 드래그가 실제로 일어났다면 클릭 이벤트를 막아 카드 링크 이동을 취소.
         carousel.addEventListener('click', function (e) {
             if (moved > DRAG_THRESHOLD) {
                 e.preventDefault();

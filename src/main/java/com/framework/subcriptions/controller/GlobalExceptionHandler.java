@@ -7,9 +7,11 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+// 모든 컨트롤러에서 발생한 도메인 예외를 잡아 공통 에러 뷰로 변환한다.
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
+    // 구독 미발견 예외를 404 응답 + error/404 뷰로 매핑.
     @ExceptionHandler(SubscriptionNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public String handleNotFound(SubscriptionNotFoundException e, Model model) {

@@ -9,6 +9,7 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 
+// 등록/수정 폼에서 받는 입력 DTO. Spring MVC가 form 필드를 setter로 바인딩한다.
 @Getter
 @Setter
 @NoArgsConstructor
@@ -21,6 +22,7 @@ public class SubscriptionForm {
     private LocalDate startedAt;
     private boolean autoRenew;
 
+    // 폼 값으로 신규 엔티티를 만든다. 생성자/빌더 캡슐화 덕에 여기서 한 곳에서만 호출.
     public Subscription toEntity() {
         return Subscription.builder()
                 .serviceName(serviceName)

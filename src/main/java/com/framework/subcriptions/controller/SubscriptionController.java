@@ -12,13 +12,16 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+// 구독 CRUD HTTP 진입점. 모든 요청을 SubscriptionService에 위임하고 뷰 이름만 결정.
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/subscriptions")
 public class SubscriptionController {
 
+    // Lombok @RequiredArgsConstructor가 final 필드 주입용 생성자를 자동 생성.
     private final SubscriptionService service;
 
+    // GET /subscriptions — 전체 구독 카드 목록 페이지.
     @GetMapping
     public String index(Model model) {
         model.addAttribute("title", "구독 목록");
@@ -26,6 +29,7 @@ public class SubscriptionController {
         return "subscriptions/index";
     }
 
+    // GET /subscriptions/new — 등록 폼. enum 선택지를 함께 내려준다.
     @GetMapping("/new")
     public String newForm(Model model) {
         model.addAttribute("title", "구독 등록");
@@ -34,12 +38,14 @@ public class SubscriptionController {
         return "subscriptions/new";
     }
 
+    // POST /subscriptions — 신규 구독 저장 후 목록으로 PRG 리다이렉트.
     @PostMapping
     public String create(SubscriptionForm form) {
         service.create(form);
         return "redirect:/subscriptions";
     }
 
+    // GET /subscriptions/{id} — 단건 상세 페이지.
     @GetMapping("/{id}")
     public String show(@PathVariable Long id, Model model) {
         model.addAttribute("title", "구독 상세");
@@ -47,6 +53,7 @@ public class SubscriptionController {
         return "subscriptions/show";
     }
 
+    // GET /subscriptions/{id}/edit — 수정 폼. 기존 값 + enum 선택지를 함께 내려준다.
     @GetMapping("/{id}/edit")
     public String editForm(@PathVariable Long id, Model model) {
         model.addAttribute("title", "구독 수정");
@@ -56,12 +63,14 @@ public class SubscriptionController {
         return "subscriptions/edit";
     }
 
+    // POST /subscriptions/{id}/update — 수정 반영 후 상세 페이지로 PRG.
     @PostMapping("/{id}/update")
     public String update(@PathVariable Long id, SubscriptionForm form) {
         service.update(id, form);
         return "redirect:/subscriptions/" + id;
     }
 
+    // POST /subscriptions/{id}/delete — 단건 삭제 후 목록으로 PRG.
     @PostMapping("/{id}/delete")
     public String delete(@PathVariable Long id) {
         service.delete(id);

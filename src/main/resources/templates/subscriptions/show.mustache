@@ -1,7 +1,9 @@
+{{! 구독 단건 상세 페이지. 수정/목록 이동과 삭제 액션을 제공한다. }}
 {{>layouts/header}}
 
 <h1>{{subscription.serviceName}}</h1>
 
+{{! SubscriptionView가 환율 환산을 미리 처리해 displayPrice 한 값으로 표시. }}
 <article>
     <ul>
         <li>금액: {{subscription.displayPrice}} / {{subscription.billingCycle.label}}</li>
@@ -16,6 +18,7 @@
     <a href="/subscriptions">목록</a>
 </p>
 
+{{! 삭제는 별도 form + POST. 브라우저 confirm으로 실수 방지. }}
 <form action="/subscriptions/{{subscription.id}}/delete" method="post"
       onsubmit="return confirm('정말 삭제하시겠습니까?');">
     <button type="submit" class="danger">삭제</button>

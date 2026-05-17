@@ -1,7 +1,9 @@
+{{! Spring Boot 기본 에러 뷰. 매핑되지 않은 모든 예외/HTTP 오류가 이 페이지로 표시된다. }}
 {{>layouts/header}}
 
 <h1>오류가 발생했습니다</h1>
 
+{{! 상태 코드/메시지/요청 경로는 Spring이 모델에 자동으로 채워준다 (있을 때만 출력). }}
 <article>
     <ul>
         {{#status}}<li>상태: {{status}} {{error}}</li>{{/status}}
