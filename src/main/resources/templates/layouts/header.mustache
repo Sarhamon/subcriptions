@@ -3,13 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{#title}}{{title}}{{/title}}{{^title}}subcriptions{{/title}}</title>
+    <title>Subcriptions</title>
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 <header>
-    <nav>
-        <a href="/">subcriptions</a>
+    <nav class="topbar">
+        <a href="/" class="brand">SubEco</a>
+        <button type="button" class="menu-toggle" aria-label="메뉴 열기"
+                aria-controls="sideMenu" aria-expanded="false"
+                onclick="toggleMenu(true)">&#9776;</button>
     </nav>
 </header>
+
+<div class="menu-overlay" onclick="toggleMenu(false)"></div>
+<aside id="sideMenu" class="side-menu" aria-hidden="true">
+    <div class="side-menu-header">
+        <span>메뉴</span>
+        <button type="button" class="menu-close" aria-label="메뉴 닫기"
+                onclick="toggleMenu(false)">&times;</button>
+    </div>
+    <ul class="side-menu-list">
+        <li><a href="/">홈</a></li>
+        <li><a href="/subscriptions">구독 목록</a></li>
+        <li><a href="/subscriptions/new">새 구독</a></li>
+    </ul>
+</aside>
+
+<script>
+    function toggleMenu(open) {
+        document.body.classList.toggle('menu-open', open);
+        var btn = document.querySelector('.menu-toggle');
+        var panel = document.getElementById('sideMenu');
+        if (btn) btn.setAttribute('aria-expanded', open);
+        if (panel) panel.setAttribute('aria-hidden', !open);
+    }
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') toggleMenu(false);
+    });
+</script>
+
 <main>

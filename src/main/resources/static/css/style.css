@@ -25,10 +25,113 @@ header {
     padding: 0.9rem 2rem;
 }
 
-header nav a {
+header nav.topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+header nav .brand {
     font-weight: 700;
     color: #111827;
     font-size: 1.15rem;
+}
+
+.menu-toggle {
+    background: transparent;
+    color: #111827;
+    border: none;
+    padding: 0.25rem 0.5rem;
+    font-size: 1.6rem;
+    line-height: 1;
+    cursor: pointer;
+    margin: 0;
+}
+
+.menu-toggle:hover {
+    background: #f3f4f6;
+    border-radius: 6px;
+}
+
+.menu-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(17, 24, 39, 0.4);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0s linear 0.2s;
+    z-index: 90;
+}
+
+.side-menu {
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 100vh;
+    width: 280px;
+    max-width: 85vw;
+    background: #ffffff;
+    border-left: 1px solid #e5e7eb;
+    box-shadow: -4px 0 16px rgba(0, 0, 0, 0.08);
+    transform: translateX(100%);
+    transition: transform 0.25s ease;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+}
+
+.side-menu-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #e5e7eb;
+    font-weight: 600;
+    color: #111827;
+}
+
+.menu-close {
+    background: transparent;
+    color: #6b7280;
+    border: none;
+    font-size: 1.6rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 0.25rem;
+    margin: 0;
+}
+
+.menu-close:hover {
+    color: #111827;
+    background: transparent;
+}
+
+.side-menu-list {
+    list-style: none;
+    padding: 0.5rem 0;
+    margin: 0;
+}
+
+.side-menu-list li a {
+    display: block;
+    padding: 0.75rem 1.25rem;
+    color: #1f2937;
+    font-size: 1rem;
+}
+
+.side-menu-list li a:hover {
+    background: #f3f4f6;
+    text-decoration: none;
+}
+
+body.menu-open .menu-overlay {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.2s ease;
+}
+
+body.menu-open .side-menu {
+    transform: translateX(0);
 }
 
 main {
@@ -125,4 +228,96 @@ footer {
     padding: 2rem 1rem;
     color: #9ca3af;
     font-size: 0.85rem;
+}
+
+.card-carousel {
+    display: flex;
+    gap: 0.9rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    padding: 0.5rem 0 1rem;
+    margin: 0 -1.25rem;
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+    scrollbar-width: none;
+    cursor: grab;
+    user-select: none;
+}
+
+.card-carousel::-webkit-scrollbar {
+    display: none;
+}
+
+.card-carousel.dragging {
+    cursor: grabbing;
+    scroll-snap-type: none;
+}
+
+.card-carousel.dragging .sub-card {
+    pointer-events: none;
+}
+
+.sub-card {
+    flex: 0 0 220px;
+    scroll-snap-align: start;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1rem 1.1rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    color: #1f2937;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.sub-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    text-decoration: none;
+}
+
+.sub-card-title {
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: #111827;
+}
+
+.sub-card-price {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #2563eb;
+    margin-top: 0.35rem;
+}
+
+.sub-card-cycle {
+    font-size: 0.85rem;
+    color: #6b7280;
+}
+
+.sub-card-meta {
+    font-size: 0.85rem;
+    color: #4b5563;
+    margin-top: 0.6rem;
+}
+
+.sub-card-badge {
+    align-self: flex-start;
+    margin-top: 0.55rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+}
+
+.badge-auto {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.badge-manual {
+    background: #f3f4f6;
+    color: #6b7280;
 }

@@ -4,20 +4,88 @@
 
 <p><a href="/subscriptions/new">+ 새 구독 등록</a></p>
 
-{{#subscriptions}}
-<article>
-    <h3><a href="/subscriptions/{{id}}">{{serviceName}}</a></h3>
-    <ul>
-        <li>금액: {{displayPrice}} / {{billingCycle.label}}</li>
-        <li>시작일(또는 마지막 갱신일): {{startedAt}}</li>
-        <li>다음 갱신일: {{nextRenewalDate}}</li>
-        <li>자동 결제: {{#autoRenew}}자동{{/autoRenew}}{{^autoRenew}}수동{{/autoRenew}}</li>
-    </ul>
-</article>
-{{/subscriptions}}
+<div class="card-carousel">
+    {{#subscriptions}}
+    <a class="sub-card" href="/subscriptions/{{id}}">
+        <div class="sub-card-title">{{serviceName}}</div>
+        <div class="sub-card-price">{{displayPrice}}</div>
+        <div class="sub-card-cycle">{{billingCycle.label}}</div>
+        <div class="sub-card-meta">다음 갱신 · {{nextRenewalDate}}</div>
+        <span class="sub-card-badge {{#autoRenew}}badge-auto{{/autoRenew}}{{^autoRenew}}badge-manual{{/autoRenew}}">
+            {{#autoRenew}}자동결제{{/autoRenew}}{{^autoRenew}}수동결제{{/autoRenew}}
+        </span>
+    </a>
+    {{/subscriptions}}
+</div>
 
 {{^subscriptions}}
 <p>등록된 구독이 없습니다.</p>
 {{/subscriptions}}
+
+<script>
+    (function () {
+        var carousel = document.querySelector('.card-carousel');
+        if (!carousel) return;
+
+        var isDown = false;
+        var startX = 0;
+        var startScroll = 0;
+        var moved = 0;
+        var pendingScroll = null;
+        var rafId = null;
+        var DRAG_THRESHOLD = 5;
+
+        carousel.addEventListener('mousedown', function (e) {
+            isDown = true;
+            moved = 0;
+            startX = e.pageX;
+            startScroll = carousel.scrollLeft;
+            e.preventDefault();
+        });
+
+        function endDrag() {
+            if (!isDown) return;
+            isDown = false;
+            carousel.classList.remove('dragging');
+            if (rafId) {
+                cancelAnimationFrame(rafId);
+                rafId = null;
+            }
+        }
+
+        window.addEventListener('mouseup', endDrag);
+        carousel.addEventListener('mouseleave', endDrag);
+
+        carousel.addEventListener('mousemove', function (e) {
+            if (!isDown) return;
+            var walk = e.pageX - startX;
+            moved = Math.max(moved, Math.abs(walk));
+            if (moved > DRAG_THRESHOLD && !carousel.classList.contains('dragging')) {
+                carousel.classList.add('dragging');
+            }
+            pendingScroll = startScroll - walk;
+            if (rafId === null) {
+                rafId = requestAnimationFrame(function () {
+                    rafId = null;
+                    if (pendingScroll !== null) {
+                        carousel.scrollLeft = pendingScroll;
+                        pendingScroll = null;
+                    }
+                });
+            }
+        });
+
+        carousel.addEventListener('dragstart', function (e) {
+            e.preventDefault();
+        });
+
+        carousel.addEventListener('click', function (e) {
+            if (moved > DRAG_THRESHOLD) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        }, true);
+    })();
+</script>
 
 {{>layouts/footer}}
