@@ -3,6 +3,7 @@ package com.framework.subcriptions.service;
 import com.framework.subcriptions.domain.Currency;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -18,19 +19,17 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ExchangeRateService {
 
     // open.er-api.com: 무료, API 키 불필요, KRW 포함 170개 통화 지원.
-    // Frankfurter(ECB 데이터)는 KRW 미지원 → HTML 에러 페이지 반환 문제로 교체.
     private static final String API_URL = "https://open.er-api.com/v6/latest/USD";
 
-    private final RestClient restClient;
+    // Map<String, Object>로 역직렬화 → 커스텀 record 불필요, unknown property 문제 없음.
+    private static final ParameterizedTypeReference<Map<String, Object>> RESPONSE_TYPE =
+            new ParameterizedTypeReference<>() {};
+
+    private final RestClient restClient = RestClient.create();
     private final Map<Currency, BigDecimal> ratesToKrw = new ConcurrentHashMap<>();
 
     private volatile LocalDateTime lastUpdated = null;
     private volatile String lastError = null;
-
-    // Spring Boot 자동 구성 RestClient.Builder 주입 → ObjectMapper 설정(unknown property 무시 등) 상속.
-    public ExchangeRateService(RestClient.Builder restClientBuilder) {
-        this.restClient = restClientBuilder.build();
-    }
 
     @PostConstruct
     public void init() {
@@ -41,22 +40,30 @@ public class ExchangeRateService {
     }
 
     @Scheduled(cron = "0 0 0 * * *")
+    @SuppressWarnings("unchecked")
     public void refreshRates() {
         try {
-            ExchangeRateResponse response = restClient.get()
+            Map<String, Object> body = restClient.get()
                     .uri(API_URL)
                     .header("Accept", "application/json")
                     .retrieve()
-                    .body(ExchangeRateResponse.class);
+                    .body(RESPONSE_TYPE);
 
-            if (response == null || response.rates() == null) {
+            if (body == null) {
                 lastError = "API 응답이 비어있음";
                 log.warn("환율 API 응답이 비어있음. fallback 환율 유지");
                 return;
             }
 
-            BigDecimal krwPerUsd = response.rates().get("KRW");
-            BigDecimal jpyPerUsd = response.rates().get("JPY");
+            Map<String, Object> rates = (Map<String, Object>) body.get("rates");
+            if (rates == null) {
+                lastError = "rates 필드 없음 — 응답: " + body.keySet();
+                log.warn("환율 API rates 필드 없음: {}", body.keySet());
+                return;
+            }
+
+            BigDecimal krwPerUsd = toBigDecimal(rates.get("KRW"));
+            BigDecimal jpyPerUsd = toBigDecimal(rates.get("JPY"));
 
             if (krwPerUsd != null && krwPerUsd.compareTo(BigDecimal.ZERO) > 0) {
                 ratesToKrw.put(Currency.USD, krwPerUsd);
@@ -76,6 +83,11 @@ public class ExchangeRateService {
             lastError = e.getClass().getSimpleName() + ": " + e.getMessage();
             log.warn("환율 API 호출 실패. fallback 환율 유지: {}", e.getMessage());
         }
+    }
+
+    private static BigDecimal toBigDecimal(Object value) {
+        if (value == null) return null;
+        return new BigDecimal(value.toString());
     }
 
     public BigDecimal getRate(Currency currency) {
@@ -100,6 +112,4 @@ public class ExchangeRateService {
     public String getLastError() {
         return lastError;
     }
-
-    record ExchangeRateResponse(Map<String, BigDecimal> rates) {}
 }
