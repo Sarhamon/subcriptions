@@ -3,8 +3,6 @@ package com.framework.subcriptions.service;
 import com.framework.subcriptions.domain.Currency;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.MediaType;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -12,7 +10,6 @@ import org.springframework.web.client.RestClient;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -20,24 +17,19 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class ExchangeRateService {
 
-    private static final String API_URL = "https://api.frankfurter.app/latest?from=USD&to=KRW,JPY";
+    // open.er-api.com: 무료, API 키 불필요, KRW 포함 170개 통화 지원.
+    // Frankfurter(ECB 데이터)는 KRW 미지원 → HTML 에러 페이지 반환 문제로 교체.
+    private static final String API_URL = "https://open.er-api.com/v6/latest/USD";
 
-    private final RestClient restClient = buildRestClient();
+    private final RestClient restClient;
     private final Map<Currency, BigDecimal> ratesToKrw = new ConcurrentHashMap<>();
 
     private volatile LocalDateTime lastUpdated = null;
     private volatile String lastError = null;
 
-    // text/html로 응답이 와도 Jackson이 파싱 시도하도록 허용 (일부 CDN·프록시가 Content-Type을 잘못 설정함).
-    private static RestClient buildRestClient() {
-        MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-        converter.setSupportedMediaTypes(List.of(MediaType.APPLICATION_JSON, MediaType.TEXT_HTML));
-        return RestClient.builder()
-                .messageConverters(converters -> {
-                    converters.removeIf(c -> c instanceof MappingJackson2HttpMessageConverter);
-                    converters.add(converter);
-                })
-                .build();
+    // Spring Boot 자동 구성 RestClient.Builder 주입 → ObjectMapper 설정(unknown property 무시 등) 상속.
+    public ExchangeRateService(RestClient.Builder restClientBuilder) {
+        this.restClient = restClientBuilder.build();
     }
 
     @PostConstruct
@@ -51,11 +43,11 @@ public class ExchangeRateService {
     @Scheduled(cron = "0 0 0 * * *")
     public void refreshRates() {
         try {
-            FrankfurterResponse response = restClient.get()
+            ExchangeRateResponse response = restClient.get()
                     .uri(API_URL)
                     .header("Accept", "application/json")
                     .retrieve()
-                    .body(FrankfurterResponse.class);
+                    .body(ExchangeRateResponse.class);
 
             if (response == null || response.rates() == null) {
                 lastError = "API 응답이 비어있음";
@@ -109,6 +101,5 @@ public class ExchangeRateService {
         return lastError;
     }
 
-    // Jackson 역직렬화를 위해 package-private으로 선언 (private이면 생성자 접근 불가).
-    record FrankfurterResponse(String base, String date, Map<String, BigDecimal> rates) {}
+    record ExchangeRateResponse(Map<String, BigDecimal> rates) {}
 }
