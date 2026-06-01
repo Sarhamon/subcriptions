@@ -763,6 +763,19 @@ footer {
     text-align: center;
 }
 
+/* ── 다크모드 ── */
+body.dark {
+    --surface:      #0f1117;
+    --card:         #161b27;
+    --text:         #e2e8f0;
+    --muted:        #94a3b8;
+    --border:       rgba(124, 109, 250, 0.2);
+    --accent-light: rgba(124, 109, 250, 0.12);
+}
+
+body.dark .form-input:focus { background: #1e2535; }
+body.dark .overlay          { background: rgba(0, 0, 0, .55); }
+
 /* ── 에러 페이지 ── */
 .error-card {
     background: var(--card);
