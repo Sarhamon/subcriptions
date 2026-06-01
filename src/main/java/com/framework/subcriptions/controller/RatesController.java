@@ -32,7 +32,6 @@ public class RatesController {
         return "rates";
     }
 
-    // 수동 갱신: 캐시를 즉시 재요청하고 결과를 확인할 수 있도록 /rates로 리다이렉트.
     @PostMapping("/rates/refresh")
     public String refresh() {
         exchangeRateService.refreshRates();

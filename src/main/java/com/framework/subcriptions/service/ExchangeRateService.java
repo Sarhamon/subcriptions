@@ -3,6 +3,8 @@ package com.framework.subcriptions.service;
 import com.framework.subcriptions.domain.Currency;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -10,6 +12,7 @@ import org.springframework.web.client.RestClient;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -17,17 +20,25 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class ExchangeRateService {
 
-    // USD를 base로 KRW·JPY를 받는다. USD는 Frankfurter에서 항상 안정적으로 지원됨.
-    // 응답 예: { "rates": { "KRW": 1498.0, "JPY": 156.3 } }
     private static final String API_URL = "https://api.frankfurter.app/latest?from=USD&to=KRW,JPY";
 
-    private final RestClient restClient = RestClient.create();
+    private final RestClient restClient = buildRestClient();
     private final Map<Currency, BigDecimal> ratesToKrw = new ConcurrentHashMap<>();
 
-    // 성공한 마지막 API 호출 시각. null이면 아직 실시간 데이터를 받은 적 없음.
     private volatile LocalDateTime lastUpdated = null;
-    // 마지막 실패 원인. 성공하면 null로 초기화.
     private volatile String lastError = null;
+
+    // text/html로 응답이 와도 Jackson이 파싱 시도하도록 허용 (일부 CDN·프록시가 Content-Type을 잘못 설정함).
+    private static RestClient buildRestClient() {
+        MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
+        converter.setSupportedMediaTypes(List.of(MediaType.APPLICATION_JSON, MediaType.TEXT_HTML));
+        return RestClient.builder()
+                .messageConverters(converters -> {
+                    converters.removeIf(c -> c instanceof MappingJackson2HttpMessageConverter);
+                    converters.add(converter);
+                })
+                .build();
+    }
 
     @PostConstruct
     public void init() {
@@ -42,6 +53,7 @@ public class ExchangeRateService {
         try {
             FrankfurterResponse response = restClient.get()
                     .uri(API_URL)
+                    .header("Accept", "application/json")
                     .retrieve()
                     .body(FrankfurterResponse.class);
 
@@ -54,11 +66,9 @@ public class ExchangeRateService {
             BigDecimal krwPerUsd = response.rates().get("KRW");
             BigDecimal jpyPerUsd = response.rates().get("JPY");
 
-            // KRW per USD: 응답값을 그대로 저장.
             if (krwPerUsd != null && krwPerUsd.compareTo(BigDecimal.ZERO) > 0) {
                 ratesToKrw.put(Currency.USD, krwPerUsd);
             }
-            // KRW per JPY: 교차 환율 = (KRW per USD) / (JPY per USD).
             if (krwPerUsd != null && krwPerUsd.compareTo(BigDecimal.ZERO) > 0
                     && jpyPerUsd != null && jpyPerUsd.compareTo(BigDecimal.ZERO) > 0) {
                 ratesToKrw.put(Currency.JPY,
