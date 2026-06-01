@@ -24,7 +24,7 @@ public class SubscriptionController {
     // GET /subscriptions — 전체 구독 카드 목록 페이지.
     @GetMapping
     public String index(Model model) {
-        model.addAttribute("title", "구독 목록");
+        model.addAttribute("title", "전체 구독");
         model.addAttribute("subscriptions", service.findAll());
         return "subscriptions/index";
     }

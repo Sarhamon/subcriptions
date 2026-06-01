@@ -1,0 +1,24 @@
+{{>layouts/header}}
+
+<div class="page-title">현재 환율</div>
+
+<div class="detail-card">
+    <div class="detail-rows">
+        <div class="detail-row">
+            <span class="detail-row-label">🇺🇸 달러 (USD)</span>
+            <span class="detail-row-value v-accent">1 달러 = {{usdRate}} 원</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-row-label">🇯🇵 엔 (JPY)</span>
+            <span class="detail-row-value v-accent">1 엔 = {{jpyRate}} 원</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-row-label">🇰🇷 원 (KRW)</span>
+            <span class="detail-row-value">1 원 = 1 원</span>
+        </div>
+    </div>
+</div>
+
+<p class="rate-note">출처: Frankfurter API · 매일 자정 자동 갱신</p>
+
+{{>layouts/footer}}

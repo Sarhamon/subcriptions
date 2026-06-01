@@ -7,8 +7,8 @@ import com.framework.subcriptions.service.ExchangeRateService;
 import lombok.Getter;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 
-// 화면 출력용 읽기 전용 DTO. 환율 환산 결과(displayPrice)를 미리 계산해 템플릿을 단순하게 유지.
 @Getter
 public class SubscriptionView {
 
@@ -21,8 +21,14 @@ public class SubscriptionView {
     private final LocalDate nextRenewalDate;
     private final boolean autoRenew;
     private final String displayPrice;
+    private final long daysUntilRenewal;
+    private final boolean dueSoon;   // 3일 이내
+    private final boolean dueSoon7;  // 7일 이내 (홈 요약 지표용)
+    private final String daysText;   // "오늘" | "N일 후"
+    private final String colorClass; // c1~c4 (카드 상단 스트라이프)
+    private final String emoji;      // 서비스 아이콘
+    private final int monthlyKrw;    // 월 환산 원화 (연간 ÷ 12, 홈 지표용)
 
-    // 엔티티 + 환율 서비스에서 화면용 값을 즉시 채워 불변 객체로 만든다.
     public SubscriptionView(Subscription s, ExchangeRateService rateService) {
         this.id = s.getId();
         this.serviceName = s.getServiceName();
@@ -33,9 +39,15 @@ public class SubscriptionView {
         this.nextRenewalDate = s.getNextRenewalDate();
         this.autoRenew = s.isAutoRenew();
         this.displayPrice = buildDisplayPrice(s, rateService);
+        this.daysUntilRenewal = ChronoUnit.DAYS.between(LocalDate.now(), this.nextRenewalDate);
+        this.dueSoon = this.daysUntilRenewal <= 3;
+        this.dueSoon7 = this.daysUntilRenewal <= 7;
+        this.daysText = this.daysUntilRenewal == 0 ? "오늘" : this.daysUntilRenewal + "일 후";
+        this.colorClass = resolveColorClass(s.getId());
+        this.emoji = resolveEmoji(s.getServiceName());
+        this.monthlyKrw = calcMonthlyKrw(s, rateService);
     }
 
-    // 표시 가격 문자열을 만든다. 외화면 괄호 안에 원화 환산값을 덧붙인다.
     private static String buildDisplayPrice(Subscription s, ExchangeRateService rateService) {
         String main = String.format("%,d %s", s.getPrice(), s.getCurrency().getLabel());
         if (s.getCurrency() == Currency.KRW) {
@@ -43,5 +55,27 @@ public class SubscriptionView {
         }
         int krw = rateService.toKrw(s.getCurrency(), s.getPrice());
         return main + " (" + String.format("%,d", krw) + "원)";
+    }
+
+    private static String resolveColorClass(Long id) {
+        String[] classes = {"c1", "c2", "c3", "c4"};
+        return classes[(int) Math.abs((id - 1) % 4)];
+    }
+
+    private static String resolveEmoji(String name) {
+        String n = name.toLowerCase();
+        if (n.contains("netflix"))   return "🎬";
+        if (n.contains("spotify"))   return "🎵";
+        if (n.contains("youtube"))   return "▶️";
+        if (n.contains("claude"))    return "🤖";
+        if (n.contains("notion"))    return "📝";
+        if (n.contains("chatgpt"))   return "💬";
+        if (n.contains("nintendo"))  return "🎮";
+        return "📦";
+    }
+
+    private static int calcMonthlyKrw(Subscription s, ExchangeRateService rateService) {
+        int krw = rateService.toKrw(s.getCurrency(), s.getPrice());
+        return s.getBillingCycle() == BillingCycle.YEARLY ? Math.round(krw / 12f) : krw;
     }
 }

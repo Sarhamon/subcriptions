@@ -1,355 +1,798 @@
-/* 모든 요소에 box-sizing 적용해 padding/border가 width에 포함되도록 한다. */
-* { box-sizing: border-box; }
+/* ── 전역 초기화 ── */
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* 페이지 기본 폰트/색/배경. 한글 폰트 폴백을 함께 명시. */
+/* ── CSS 변수: 색상 팔레트 ── */
+:root {
+    --accent:       #7c6dfa;
+    --accent-dark:  #6558e8;
+    --accent-light: rgba(124, 109, 250, 0.08);
+    --accent2:      #f97316;
+    --green:        #10b981;
+    --pink:         #e879a0;
+    --surface:      #f5f5fb;
+    --card:         #fff;
+    --text:         #1a1a2e;
+    --muted:        #6b6b8a;
+    --border:       rgba(124, 109, 250, 0.15);
+}
+
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR",
-                 "Apple SD Gothic Neo", "맑은 고딕", sans-serif;
-    line-height: 1.6;
-    color: #1f2937;
-    background: #f7f7f8;
-    margin: 0;
-    padding: 0;
+    font-family: 'DM Sans', -apple-system, 'Noto Sans KR', sans-serif;
+    background: var(--surface);
+    color: var(--text);
+    min-height: 100vh;
 }
 
-/* 링크 기본 스타일: 파란색 + 밑줄 제거(호버 시에만 밑줄). */
-a {
-    color: #2563eb;
-    text-decoration: none;
-}
+a    { text-decoration: none; color: inherit; }
+button { font-family: inherit; cursor: pointer; }
 
-a:hover {
-    text-decoration: underline;
-}
-
-/* 상단 헤더 컨테이너: 흰 배경 + 하단 구분선. */
+/* ── 헤더 ── */
 header {
-    background: #ffffff;
-    border-bottom: 1px solid #e5e7eb;
-    padding: 0.9rem 2rem;
+    background: var(--card);
+    border-bottom: 0.5px solid var(--border);
+    padding: 0 24px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
 }
 
-/* 상단바: 좌측 브랜드와 우측 햄버거를 양 끝에 배치. */
-header nav.topbar {
+.topbar {
+    max-width: 720px;
+    margin: 0 auto;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    height: 56px;
 }
 
-/* 로고/브랜드 텍스트 스타일. */
-header nav .brand {
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.brand-mark {
+    width: 32px;
+    height: 32px;
+    background: var(--accent);
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.brand-mark svg {
+    width: 16px;
+    height: 16px;
+    stroke: #fff;
+    fill: none;
+    stroke-width: 2.2;
+}
+
+.brand-name {
+    font-family: 'Gowun Batang', serif;
     font-weight: 700;
-    color: #111827;
-    font-size: 1.15rem;
+    font-size: 1.1rem;
+    color: var(--text);
 }
 
-/* 햄버거(☰) 버튼: 투명 배경에 큰 폰트로 아이콘처럼 보이게. */
-.menu-toggle {
-    background: transparent;
-    color: #111827;
+.header-actions {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 7px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
     border: none;
-    padding: 0.25rem 0.5rem;
-    font-size: 1.6rem;
+    background: none;
+    color: var(--muted);
+    transition: all .15s;
+}
+
+.btn:hover {
+    background: var(--accent-light);
+    color: var(--accent);
+    text-decoration: none;
+}
+
+.btn-primary {
+    background: var(--accent) !important;
+    color: #fff !important;
+}
+
+.btn-primary:hover {
+    background: var(--accent-dark) !important;
+    text-decoration: none;
+}
+
+/* ── 본문 ── */
+main {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 28px 24px 60px;
+}
+
+/* ── 홈: 인삿말 ── */
+.greeting { margin-bottom: 24px; }
+
+.greeting h1 {
+    font-family: 'Gowun Batang', serif;
+    font-size: 1.65rem;
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+.greeting p {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 5px;
+}
+
+/* ── 홈: 요약 지표 카드 3개 ── */
+.summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 28px;
+}
+
+.metric {
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 18px;
+}
+
+.metric-label {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 500;
+    letter-spacing: .4px;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+}
+
+.metric-value {
+    font-size: 22px;
+    font-weight: 700;
     line-height: 1;
+    color: var(--text);
+}
+
+.v-accent { color: var(--accent)  !important; }
+.v-warn   { color: var(--accent2) !important; }
+
+.metric-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 5px;
+}
+
+/* ── 섹션 헤더 ── */
+.section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.section-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.section-hint {
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.section-link {
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 500;
+}
+
+.section-link:hover { text-decoration: underline; }
+
+/* ── 캐러셀 ── */
+.carousel-outer {
+    margin: 0 -24px;
+    padding: 0 24px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    cursor: grab;
+}
+
+.carousel-outer::-webkit-scrollbar { display: none; }
+.carousel-outer.dragging { cursor: grabbing; }
+.carousel-outer.dragging .sub-card { pointer-events: none; }
+
+.carousel {
+    display: flex;
+    gap: 12px;
+    padding-bottom: 8px;
+    width: max-content;
+}
+
+/* ── 구독 카드 (캐러셀) ── */
+.sub-card {
+    width: 188px;
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: 16px;
+    padding: 18px 16px 15px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+    transition: transform .15s, box-shadow .15s;
     cursor: pointer;
-    margin: 0;
+    color: var(--text);
 }
 
-.menu-toggle:hover {
-    background: #f3f4f6;
-    border-radius: 6px;
+/* 카드 상단 컬러 스트라이프 */
+.sub-card::after,
+.list-card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: 16px 16px 0 0;
 }
 
-/* 메뉴 오버레이: 사이드 패널 뒤를 살짝 어둡게. 기본은 숨김. */
-.menu-overlay {
+.c1::after { background: var(--accent); }
+.c2::after { background: var(--green); }
+.c3::after { background: var(--accent2); }
+.c4::after { background: var(--pink); }
+
+.sub-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 22px rgba(124, 109, 250, .13);
+    text-decoration: none;
+}
+
+.card-service {
+    font-weight: 600;
+    font-size: .88rem;
+    margin-bottom: 10px;
+}
+
+.card-price {
+    font-size: 1.3rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.card-cycle {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 3px;
+}
+
+.card-div {
+    height: .5px;
+    background: var(--border);
+    margin: 12px 0;
+}
+
+.card-renewal {
+    font-size: 11px;
+    color: var(--muted);
+}
+
+.card-renewal b {
+    color: var(--text);
+    font-weight: 600;
+}
+
+/* ── 배지 ── */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    margin-top: 10px;
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-size: 10.5px;
+    font-weight: 600;
+}
+
+.badge-auto   { background: rgba(124, 109, 250, .1); color: var(--accent); }
+.badge-manual { background: rgba(107, 107, 138, .1); color: var(--muted); }
+
+/* ── 갱신 예정 리스트 ── */
+.upcoming {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 28px;
+}
+
+.uitem {
+    background: var(--card);
+    border: .5px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: background .12s;
+    color: var(--text);
+}
+
+.uitem:hover {
+    background: var(--accent-light);
+    text-decoration: none;
+}
+
+.udot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.udot-c1 { background: var(--accent); }
+.udot-c2 { background: var(--green); }
+.udot-c3 { background: var(--accent2); }
+.udot-c4 { background: var(--pink); }
+
+.uinfo { flex: 1; }
+
+.uname {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.umeta {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 1px;
+}
+
+.uamt {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.utag {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 20px;
+    flex-shrink: 0;
+}
+
+.utag-soon { background: rgba(249, 115, 22, .1);  color: var(--accent2); }
+.utag-ok   { background: rgba(16,  185, 129, .1);  color: var(--green); }
+
+/* ── 새 구독 추가 CTA ── */
+.add-hint {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 1.5px dashed rgba(124, 109, 250, .25);
+    border-radius: 14px;
+    padding: 16px;
+    color: var(--accent);
+    font-size: 13px;
+    font-weight: 500;
+    transition: background .15s;
+    background: transparent;
+    width: 100%;
+}
+
+.add-hint:hover {
+    background: var(--accent-light);
+    text-decoration: none;
+}
+
+.add-hint svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+}
+
+/* ── 목록 그리드 ── */
+.list-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.list-card {
+    background: var(--card);
+    border: .5px solid var(--border);
+    border-radius: 16px;
+    padding: 18px 16px 15px;
+    position: relative;
+    overflow: hidden;
+    transition: transform .15s, box-shadow .15s;
+    display: flex;
+    flex-direction: column;
+    color: var(--text);
+}
+
+.list-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 22px rgba(124, 109, 250, .13);
+    text-decoration: none;
+}
+
+/* ── 페이지 제목 ── */
+.page-title {
+    font-family: 'Gowun Batang', serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+/* ── 뒤로가기 버튼 ── */
+.back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 16px;
+    border: none;
+    background: none;
+    padding: 0;
+}
+
+.back-btn:hover { color: var(--accent); text-decoration: none; }
+
+/* ── 상세 페이지 ── */
+.detail-card {
+    background: var(--card);
+    border: .5px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 16px;
+}
+
+.detail-header {
+    padding: 24px 24px 20px;
+    border-bottom: .5px solid var(--border);
+}
+
+.detail-service {
+    font-family: 'Gowun Batang', serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+}
+
+.detail-price {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin-top: 6px;
+}
+
+.detail-cycle {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 3px;
+}
+
+.detail-rows { padding: 8px 0; }
+
+.detail-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 13px 24px;
+    border-bottom: .5px solid var(--border);
+}
+
+.detail-row:last-child { border-bottom: none; }
+
+.detail-row-label {
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.detail-row-value {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* ── 수정/삭제 액션 버튼 ── */
+.action-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.action-row form {
+    flex: 1;
+    display: flex;
+}
+
+.action-btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    border: none;
+    transition: all .15s;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.action-edit {
+    background: var(--accent-light);
+    color: var(--accent);
+}
+
+.action-edit:hover {
+    background: rgba(124, 109, 250, .15);
+    text-decoration: none;
+}
+
+.action-delete {
+    background: rgba(239, 68, 68, .08);
+    color: #ef4444;
+    width: 100%;
+}
+
+.action-delete:hover { background: rgba(239, 68, 68, .15); }
+
+/* ── 등록/수정 폼 ── */
+.form-card {
+    background: var(--card);
+    border: .5px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+}
+
+.form-group { margin-bottom: 16px; }
+
+.form-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    letter-spacing: .3px;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+}
+
+.form-input {
+    width: 100%;
+    padding: 10px 14px;
+    border: .5px solid rgba(124, 109, 250, .3);
+    border-radius: 10px;
+    font-size: 14px;
+    background: var(--surface);
+    color: var(--text);
+    font-family: inherit;
+    transition: border-color .15s, box-shadow .15s;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(124, 109, 250, .1);
+    background: #fff;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 14px;
+    background: var(--surface);
+    border-radius: 10px;
+    border: .5px solid rgba(124, 109, 250, .2);
+}
+
+.checkbox-group input[type=checkbox] {
+    accent-color: var(--accent);
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.checkbox-group label {
+    font-size: 14px;
+    color: var(--text);
+    cursor: pointer;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 24px;
+}
+
+.form-submit {
+    flex: 1;
+    padding: 13px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    cursor: pointer;
+    transition: background .15s;
+}
+
+.form-submit:hover { background: var(--accent-dark); }
+
+.form-cancel {
+    padding: 13px 20px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    border: .5px solid var(--border);
+    background: none;
+    color: var(--muted);
+    display: inline-flex;
+    align-items: center;
+    transition: all .15s;
+}
+
+.form-cancel:hover {
+    background: var(--accent-light);
+    color: var(--accent);
+    text-decoration: none;
+}
+
+/* ── 사이드 메뉴 ── */
+.overlay {
     position: fixed;
     inset: 0;
-    background: rgba(17, 24, 39, 0.4);
+    background: rgba(26, 26, 46, .4);
     opacity: 0;
     visibility: hidden;
-    transition: opacity 0.2s ease, visibility 0s linear 0.2s;
+    transition: opacity .2s, visibility 0s linear .2s;
     z-index: 90;
 }
 
-/* 우측 사이드 메뉴: 평소엔 화면 밖(translateX 100%)으로 숨겨둔다. */
-.side-menu {
+.sidemenu {
     position: fixed;
-    top: 0;
-    right: 0;
+    top: 0; right: 0;
     height: 100vh;
-    width: 280px;
+    width: 260px;
     max-width: 85vw;
-    background: #ffffff;
-    border-left: 1px solid #e5e7eb;
-    box-shadow: -4px 0 16px rgba(0, 0, 0, 0.08);
+    background: var(--card);
+    border-left: .5px solid var(--border);
     transform: translateX(100%);
-    transition: transform 0.25s ease;
+    transition: transform .25s;
     z-index: 100;
     display: flex;
     flex-direction: column;
 }
 
-/* 사이드 메뉴 상단의 제목 + 닫기 버튼 영역. */
-.side-menu-header {
+.sm-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 1rem 1.25rem;
-    border-bottom: 1px solid #e5e7eb;
+    padding: 16px 20px;
+    border-bottom: .5px solid var(--border);
     font-weight: 600;
-    color: #111827;
 }
 
-/* 사이드 메뉴 닫기(✕) 버튼. */
-.menu-close {
-    background: transparent;
-    color: #6b7280;
+.sm-close {
+    background: none;
     border: none;
-    font-size: 1.6rem;
-    line-height: 1;
+    font-size: 1.5rem;
+    color: var(--muted);
     cursor: pointer;
-    padding: 0 0.25rem;
-    margin: 0;
+    line-height: 1;
 }
 
-.menu-close:hover {
-    color: #111827;
-    background: transparent;
-}
+.sm-close:hover { color: var(--text); }
 
-/* 사이드 메뉴 항목 리스트. */
-.side-menu-list {
+.sm-list {
     list-style: none;
-    padding: 0.5rem 0;
-    margin: 0;
+    padding: 6px 0;
 }
 
-.side-menu-list li a {
+.sm-list li a {
     display: block;
-    padding: 0.75rem 1.25rem;
-    color: #1f2937;
-    font-size: 1rem;
+    padding: 11px 20px;
+    font-size: 14px;
+    color: var(--text);
+    transition: background .12s;
 }
 
-.side-menu-list li a:hover {
-    background: #f3f4f6;
+.sm-list li a:hover {
+    background: var(--accent-light);
+    color: var(--accent);
     text-decoration: none;
 }
 
-/* body.menu-open 토글로 오버레이/패널을 한꺼번에 보이게 만든다 (JS는 클래스만 토글). */
-body.menu-open .menu-overlay {
+body.menu-open .overlay {
     opacity: 1;
     visibility: visible;
-    transition: opacity 0.2s ease;
+    transition: opacity .2s;
 }
 
-body.menu-open .side-menu {
-    transform: translateX(0);
-}
+body.menu-open .sidemenu { transform: translateX(0); }
 
-/* 본문 컨테이너: 가독성을 위한 최대 폭과 좌우 가운데 정렬. */
-main {
-    max-width: 720px;
-    margin: 2rem auto;
-    padding: 0 1.25rem;
-}
-
-/* 페이지 제목/소제목 기본 마진. */
-h1 {
-    font-size: 1.6rem;
-    margin: 0 0 1.5rem;
-}
-
-h3 {
-    margin: 0 0 0.5rem;
-    font-size: 1.1rem;
-}
-
-/* 상세/에러 페이지에서 사용하는 정보 박스 카드. */
-article {
-    background: #ffffff;
-    border: 1px solid #e5e7eb;
-    border-radius: 10px;
-    padding: 1rem 1.25rem;
-    margin-bottom: 1rem;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-}
-
-article ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    color: #4b5563;
-    font-size: 0.95rem;
-}
-
-article ul li {
-    padding: 0.15rem 0;
-}
-
-/* 폼 요소 간격/라벨 스타일. */
-form p {
-    margin: 0.85rem 0;
-}
-
-form label {
-    display: block;
-    font-weight: 500;
-    color: #374151;
-    font-size: 0.92rem;
-}
-
-/* 입력 필드(텍스트/숫자/날짜/select) 공통 스타일. */
-input[type="text"],
-input[type="number"],
-input[type="date"],
-select {
-    width: 100%;
-    padding: 0.55rem 0.75rem;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    font-size: 1rem;
-    margin-top: 0.3rem;
-    background: #ffffff;
-    color: #111827;
-}
-
-/* 포커스 시 파란 테두리 + 옅은 링으로 강조. */
-input:focus,
-select:focus {
-    outline: none;
-    border-color: #2563eb;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
-}
-
-/* 체크박스는 라벨 텍스트와 살짝 떨어뜨리고 베이스라인 보정. */
-input[type="checkbox"] {
-    margin-right: 0.4rem;
-    transform: translateY(1px);
-}
-
-/* 기본 버튼: 파란 배경의 primary 액션. */
-button {
-    background: #2563eb;
-    color: #ffffff;
-    border: none;
-    padding: 0.55rem 1.25rem;
-    border-radius: 6px;
-    font-size: 1rem;
-    cursor: pointer;
-    margin-right: 0.5rem;
-}
-
-button:hover {
-    background: #1d4ed8;
-}
-
-/* 페이지 하단 푸터. */
+/* ── 푸터 ── */
 footer {
     text-align: center;
-    padding: 2rem 1rem;
-    color: #9ca3af;
-    font-size: 0.85rem;
+    padding: 0 0 32px;
+    font-size: 12px;
+    color: var(--muted);
 }
 
-/* 카드 캐러셀: 가로 flex + scroll-snap. 스크롤바 숨김 + grab 커서로 드래그 가능함을 암시. */
-.card-carousel {
-    display: flex;
-    gap: 0.9rem;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-    padding: 0.5rem 0 1rem;
-    margin: 0 -1.25rem;
-    padding-left: 1.25rem;
-    padding-right: 1.25rem;
-    scrollbar-width: none;
-    cursor: grab;
-    user-select: none;
+/* ── 빈 상태 ── */
+.empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--muted);
 }
 
-/* WebKit 계열에서 스크롤바 숨김. */
-.card-carousel::-webkit-scrollbar {
-    display: none;
+.empty-icon {
+    font-size: 2.5rem;
+    margin-bottom: 12px;
 }
 
-/* JS가 부여하는 .dragging: 드래그 중에는 스냅 OFF + 손바닥 grabbing 커서. */
-.card-carousel.dragging {
-    cursor: grabbing;
-    scroll-snap-type: none;
+/* ── 환율 페이지 ── */
+.rate-note {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 12px;
+    text-align: center;
 }
 
-/* 드래그 중 카드 hover/클릭 깜빡임 방지. */
-.card-carousel.dragging .sub-card {
-    pointer-events: none;
+/* ── 에러 페이지 ── */
+.error-card {
+    background: var(--card);
+    border: .5px solid var(--border);
+    border-radius: 16px;
+    padding: 40px 32px;
+    text-align: center;
+    margin-top: 40px;
 }
 
-/* 개별 카드: 고정 폭으로 가로 정렬, 스냅 시작점은 자기 자신. */
-.sub-card {
-    flex: 0 0 220px;
-    scroll-snap-align: start;
-    background: #ffffff;
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
-    padding: 1rem 1.1rem;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    color: #1f2937;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-/* 호버 시 살짝 떠오르는 효과. */
-.sub-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-    text-decoration: none;
-}
-
-/* 카드 내부: 서비스명 → 가격(강조) → 주기 → 다음 갱신일 → 결제 방식 배지 순. */
-.sub-card-title {
+.error-code {
+    font-family: 'Gowun Batang', serif;
+    font-size: 4rem;
     font-weight: 700;
-    font-size: 1.05rem;
-    color: #111827;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 12px;
 }
 
-.sub-card-price {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: #2563eb;
-    margin-top: 0.35rem;
+.error-msg {
+    font-size: 1rem;
+    color: var(--muted);
+    margin-bottom: 24px;
 }
 
-.sub-card-cycle {
-    font-size: 0.85rem;
-    color: #6b7280;
-}
-
-.sub-card-meta {
-    font-size: 0.85rem;
-    color: #4b5563;
-    margin-top: 0.6rem;
-}
-
-/* 자동/수동 결제 표시용 pill 배지. */
-.sub-card-badge {
-    align-self: flex-start;
-    margin-top: 0.55rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-    padding: 0.2rem 0.55rem;
-    border-radius: 999px;
-}
-
-/* 자동결제: 파란 톤. */
-.badge-auto {
-    background: #dbeafe;
-    color: #1d4ed8;
-}
-
-/* 수동결제: 회색 톤. */
-.badge-manual {
-    background: #f3f4f6;
-    color: #6b7280;
+.error-detail {
+    font-size: 12px;
+    color: var(--muted);
+    background: var(--surface);
+    border-radius: 8px;
+    padding: 10px 16px;
+    margin-bottom: 24px;
+    text-align: left;
 }

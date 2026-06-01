@@ -1,60 +1,59 @@
-{{! 구독 수정 폼. new.mustache와 거의 동일하나 기존 값으로 미리 채우고 update 엔드포인트로 POST. }}
 {{>layouts/header}}
 
-<h1>구독 수정</h1>
+<a class="back-btn" href="/subscriptions/{{subscription.id}}">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+    상세로
+</a>
+<div class="page-title">구독 수정</div>
 
-<form action="/subscriptions/{{subscription.id}}/update" method="post">
-    <p>
-        <label>서비스명<br>
-            <input type="text" name="serviceName" value="{{subscription.serviceName}}" required>
-        </label>
-    </p>
-    <p>
-        <label>금액<br>
-            <input type="number" name="price" min="0" value="{{subscription.price}}" required>
-        </label>
-    </p>
-    {{! 통화/주기 select 옵션 목록은 동일. 현재 값 선택은 아래 script에서 처리. }}
-    <p>
-        <label>통화<br>
-            <select name="currency" required>
-                {{#currencies}}
-                <option value="{{name}}">{{label}}</option>
-                {{/currencies}}
-            </select>
-        </label>
-    </p>
-    <p>
-        <label>결제 주기<br>
-            <select name="billingCycle" required>
+<div class="form-card">
+    <form action="/subscriptions/{{subscription.id}}/update" method="post">
+        <div class="form-group">
+            <label class="form-label">서비스명</label>
+            <input class="form-input" type="text" name="serviceName" value="{{subscription.serviceName}}" required>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">금액</label>
+                <input class="form-input" type="number" name="price" min="0" value="{{subscription.price}}" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">통화</label>
+                <select class="form-input" name="currency" required>
+                    {{#currencies}}
+                    <option value="{{name}}">{{label}} ({{name}})</option>
+                    {{/currencies}}
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="form-label">결제 주기</label>
+            <select class="form-input" name="billingCycle" required>
                 {{#cycles}}
                 <option value="{{name}}">{{label}}</option>
                 {{/cycles}}
             </select>
-        </label>
-    </p>
-    <p>
-        <label>시작일<br>
-            <input type="date" name="startedAt" value="{{subscription.startedAt}}" required>
-        </label>
-    </p>
-    {{! 기존 자동결제 값이 true면 체크된 상태로 표시. }}
-    <p>
-        <label>
-            <input type="checkbox" name="autoRenew" value="true"
-                   {{#subscription.autoRenew}}checked{{/subscription.autoRenew}}>
-            자동 결제
-        </label>
-    </p>
-    <p>
-        <button type="submit">저장</button>
-        <a href="/subscriptions/{{subscription.id}}">취소</a>
-    </p>
-</form>
+        </div>
+        <div class="form-group">
+            <label class="form-label">시작일</label>
+            <input class="form-input" type="date" name="startedAt" value="{{subscription.startedAt}}" required>
+        </div>
+        <div class="form-group">
+            <div class="checkbox-group">
+                <input type="checkbox" id="autoRenew" name="autoRenew" value="true"
+                       {{#subscription.autoRenew}}checked{{/subscription.autoRenew}}>
+                <label for="autoRenew">자동 결제</label>
+            </div>
+        </div>
+        <div class="form-actions">
+            <a class="form-cancel" href="/subscriptions/{{subscription.id}}">취소</a>
+            <button type="submit" class="form-submit">저장하기</button>
+        </div>
+    </form>
+</div>
 
 <script>
-    // Mustache의 selected 분기를 피하기 위해 렌더 후 현재 enum 값을 선택 상태로 설정.
-    document.querySelector('select[name="currency"]').value = "{{subscription.currency.name}}";
+    document.querySelector('select[name="currency"]').value   = "{{subscription.currency.name}}";
     document.querySelector('select[name="billingCycle"]').value = "{{subscription.billingCycle.name}}";
 </script>
 

@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SubEco · 구독 관리</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<!-- 폰트: 제목용 한글 세리프(Gowun Batang) + 본문용 산세리프(DM Sans) -->
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ── 전역 초기화 ──────────────────────────────────────────────────── */
+*{box-sizing:border-box;margin:0;padding:0;}
+
+/* ── CSS 변수: 색상 팔레트 ────────────────────────────────────────── */
+:root{
+  --accent:#7c6dfa;           /* 메인 보라 포인트 컬러 */
+  --accent-dark:#6558e8;      /* 호버 시 진한 보라 */
+  --accent-light:rgba(124,109,250,0.08); /* 배경 틴트용 연한 보라 */
+  --accent2:#f97316;          /* 경고/임박 강조용 오렌지 */
+  --green:#10b981;            /* 여유 있음 표시용 그린 */
+  --pink:#e879a0;             /* 카드 4번째 컬러 */
+  --surface:#f5f5fb;          /* 페이지 배경 */
+  --card:#fff;                /* 카드/헤더 배경 */
+  --text:#1a1a2e;             /* 기본 텍스트 */
+  --muted:#6b6b8a;            /* 보조 텍스트 */
+  --border:rgba(124,109,250,0.15); /* 테두리 */
+}
+
+/* ── 기본 요소 ────────────────────────────────────────────────────── */
+body{font-family:'DM Sans',-apple-system,'Noto Sans KR',sans-serif;background:var(--surface);color:var(--text);min-height:100vh;}
+a{text-decoration:none;color:inherit;}
+button{font-family:inherit;cursor:pointer;}
+
+/* ── 헤더: 상단 고정 네비게이션 바 ───────────────────────────────── */
+header{background:var(--card);border-bottom:0.5px solid var(--border);padding:0 24px;position:sticky;top:0;z-index:50;}
+.topbar{max-width:720px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:56px;}
+
+/* 브랜드 로고 영역 */
+.brand{display:flex;align-items:center;gap:9px;cursor:pointer;}
+.brand-mark{width:32px;height:32px;background:var(--accent);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.brand-mark svg{width:16px;height:16px;stroke:#fff;fill:none;stroke-width:2.2;}
+.brand-name{font-family:'Gowun Batang',serif;font-weight:700;font-size:1.1rem;color:var(--text);}
+
+/* 헤더 우측 버튼 그룹 */
+.header-actions{display:flex;gap:6px;align-items:center;}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:8px;font-size:13px;font-weight:500;border:none;background:none;color:var(--muted);transition:all .15s;}
+.btn:hover{background:var(--accent-light);color:var(--accent);}
+.btn-primary{background:var(--accent) !important;color:#fff !important;} /* 강조 버튼 */
+.btn-primary:hover{background:var(--accent-dark) !important;}
+
+/* ── 페이지 전환 (SPA 방식) ───────────────────────────────────────── */
+/* .page는 기본 숨김, .active 클래스가 있을 때만 보임 */
+main{max-width:720px;margin:0 auto;padding:28px 24px 60px;}
+.page{display:none;}
+.page.active{display:block;}
+
+/* ── 홈: 인삿말 영역 ──────────────────────────────────────────────── */
+.greeting{margin-bottom:24px;}
+.greeting h1{font-family:'Gowun Batang',serif;font-size:1.65rem;font-weight:700;line-height:1.25;}
+.greeting p{font-size:13px;color:var(--muted);margin-top:5px;}
+
+/* ── 홈: 요약 카드 3개 (월비용 / 구독수 / 이달갱신) ─────────────── */
+.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:28px;}
+.metric{background:var(--card);border:0.5px solid var(--border);border-radius:14px;padding:16px 18px;}
+.metric-label{font-size:11px;color:var(--muted);font-weight:500;letter-spacing:.4px;margin-bottom:6px;text-transform:uppercase;}
+.metric-value{font-size:22px;font-weight:700;line-height:1;color:var(--text);}
+.v-accent{color:var(--accent)!important;}  /* 금액 강조 */
+.v-warn{color:var(--accent2)!important;}   /* 갱신 건수 경고 */
+.metric-sub{font-size:11px;color:var(--muted);margin-top:5px;}
+
+/* ── 섹션 헤더 (제목 + 보조링크) ─────────────────────────────────── */
+.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.section-title{font-size:13px;font-weight:600;color:var(--text);}
+.section-hint{font-size:12px;color:var(--muted);}
+.section-link{font-size:12px;color:var(--accent);font-weight:500;cursor:pointer;border:none;background:none;}
+.section-link:hover{text-decoration:underline;}
+
+/* ── 구독 카드 캐러셀 ─────────────────────────────────────────────── */
+/* 가로 스크롤 컨테이너. 음수 마진으로 양쪽 여백 밖까지 확장 */
+.carousel-outer{margin:0 -24px;padding:0 24px;overflow-x:auto;scrollbar-width:none;cursor:grab;}
+.carousel-outer::-webkit-scrollbar{display:none;} /* WebKit 스크롤바 숨김 */
+.carousel-outer.dragging{cursor:grabbing;}          /* 드래그 중 커서 변경 */
+.carousel-outer.dragging .sub-card{pointer-events:none;} /* 드래그 중 카드 클릭 방지 */
+.carousel{display:flex;gap:12px;padding-bottom:8px;width:max-content;}
+
+/* 개별 구독 카드 */
+.sub-card{width:188px;background:var(--card);border:0.5px solid var(--border);border-radius:16px;padding:18px 16px 15px;display:flex;flex-direction:column;position:relative;overflow:hidden;transition:transform .15s,box-shadow .15s;cursor:pointer;}
+/* 카드 상단 컬러 스트라이프 (::after 의사 요소) */
+.sub-card::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:16px 16px 0 0;}
+.c1::after{background:var(--accent);}  /* 보라 */
+.c2::after{background:var(--green);}   /* 그린 */
+.c3::after{background:var(--accent2);} /* 오렌지 */
+.c4::after{background:var(--pink);}    /* 핑크 */
+.sub-card:hover{transform:translateY(-3px);box-shadow:0 8px 22px rgba(124,109,250,0.13);}
+/* 카드 내부 요소들 */
+.card-service{font-weight:600;font-size:.88rem;margin-bottom:10px;}
+.card-price{font-size:1.3rem;font-weight:700;line-height:1;}
+.card-cycle{font-size:11px;color:var(--muted);margin-top:3px;}
+.card-div{height:.5px;background:var(--border);margin:12px 0;} /* 구분선 */
+.card-renewal{font-size:11px;color:var(--muted);}
+.card-renewal b{color:var(--text);font-weight:600;}
+/* 자동/수동결제 배지 */
+.badge{display:inline-flex;align-items:center;margin-top:10px;padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:600;}
+.badge-auto{background:rgba(124,109,250,.1);color:var(--accent);}   /* 자동결제: 보라 */
+.badge-manual{background:rgba(107,107,138,.1);color:var(--muted);}  /* 수동결제: 회색 */
+
+/* ── 홈: 갱신 예정 리스트 ─────────────────────────────────────────── */
+.upcoming{display:flex;flex-direction:column;gap:8px;margin-bottom:28px;}
+.uitem{background:var(--card);border:.5px solid var(--border);border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:background .12s;}
+.uitem:hover{background:var(--accent-light);}
+.udot{width:8px;height:8px;border-radius:50%;flex-shrink:0;} /* 컬러 인디케이터 점 */
+.uinfo{flex:1;}
+.uname{font-size:13px;font-weight:600;}
+.umeta{font-size:11px;color:var(--muted);margin-top:1px;}
+.uamt{font-size:14px;font-weight:700;}
+/* 갱신 임박도 태그 */
+.utag{font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;flex-shrink:0;}
+.utag-soon{background:rgba(249,115,22,.1);color:var(--accent2);} /* 7일 이내: 오렌지 */
+.utag-ok{background:rgba(16,185,129,.1);color:var(--green);}     /* 여유 있음: 그린 */
+
+/* ── 홈: 새 구독 추가 유도 버튼 (점선 테두리) ───────────────────── */
+.add-hint{border:1.5px dashed rgba(124,109,250,.25);border-radius:14px;padding:16px;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;color:var(--accent);font-size:13px;font-weight:500;transition:background .15s;background:transparent;width:100%;border-style:dashed;}
+.add-hint:hover{background:var(--accent-light);}
+.add-hint svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;}
+
+/* ── 목록 페이지: 카드 그리드 ────────────────────────────────────── */
+/* auto-fill로 화면 너비에 따라 열 수 자동 조정 */
+.list-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:20px;}
+.list-card{background:var(--card);border:.5px solid var(--border);border-radius:16px;padding:18px 16px 15px;position:relative;overflow:hidden;cursor:pointer;transition:transform .15s,box-shadow .15s;}
+.list-card:hover{transform:translateY(-3px);box-shadow:0 8px 22px rgba(124,109,250,.13);}
+.list-card::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:16px 16px 0 0;}
+.page-title{font-family:'Gowun Batang',serif;font-size:1.5rem;font-weight:700;margin-bottom:20px;}
+
+/* ── 상세 페이지 ──────────────────────────────────────────────────── */
+.detail-card{background:var(--card);border:.5px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:16px;}
+.detail-header{padding:24px 24px 20px;border-bottom:.5px solid var(--border);}
+.detail-service{font-family:'Gowun Batang',serif;font-size:1.4rem;font-weight:700;}
+.detail-price{font-size:2rem;font-weight:700;color:var(--accent);margin-top:6px;}
+.detail-cycle{font-size:13px;color:var(--muted);margin-top:3px;}
+/* 상세 정보 행 목록 */
+.detail-rows{padding:8px 0;}
+.detail-row{display:flex;align-items:center;justify-content:space-between;padding:13px 24px;border-bottom:.5px solid var(--border);}
+.detail-row:last-child{border-bottom:none;}
+.detail-row-label{font-size:13px;color:var(--muted);}
+.detail-row-value{font-size:13px;font-weight:600;}
+/* 수정 / 삭제 버튼 행 */
+.action-row{display:flex;gap:10px;margin-top:8px;}
+.action-btn{flex:1;padding:12px;border-radius:10px;font-size:13px;font-weight:500;border:none;cursor:pointer;transition:all .15s;}
+.action-edit{background:var(--accent-light);color:var(--accent);}
+.action-edit:hover{background:rgba(124,109,250,.15);}
+.action-delete{background:rgba(239,68,68,.08);color:#ef4444;}
+.action-delete:hover{background:rgba(239,68,68,.15);}
+/* 뒤로가기 버튼 */
+.back-btn{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);margin-bottom:16px;cursor:pointer;border:none;background:none;padding:0;}
+.back-btn:hover{color:var(--accent);}
+
+/* ── 등록/수정 폼 페이지 ──────────────────────────────────────────── */
+.form-card{background:var(--card);border:.5px solid var(--border);border-radius:16px;padding:24px;}
+.form-group{margin-bottom:16px;}
+.form-label{display:block;font-size:12px;font-weight:500;color:var(--muted);letter-spacing:.3px;margin-bottom:6px;text-transform:uppercase;}
+.form-input{width:100%;padding:10px 14px;border:.5px solid rgba(124,109,250,.3);border-radius:10px;font-size:14px;background:var(--surface);color:var(--text);font-family:inherit;transition:border-color .15s,box-shadow .15s;}
+.form-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,109,250,.1);background:#fff;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;} /* 금액+통화 2열 배치 */
+/* 자동결제 체크박스 그룹 */
+.checkbox-group{display:flex;align-items:center;gap:8px;padding:12px 14px;background:var(--surface);border-radius:10px;border:.5px solid rgba(124,109,250,.2);}
+.checkbox-group input[type=checkbox]{accent-color:var(--accent);width:16px;height:16px;cursor:pointer;}
+.checkbox-group label{font-size:14px;color:var(--text);cursor:pointer;}
+/* 폼 하단 버튼 영역 */
+.form-actions{display:flex;gap:10px;margin-top:24px;}
+.form-submit{flex:1;padding:13px;border-radius:10px;font-size:14px;font-weight:600;border:none;background:var(--accent);color:#fff;cursor:pointer;transition:background .15s;}
+.form-submit:hover{background:var(--accent-dark);}
+.form-cancel{padding:13px 20px;border-radius:10px;font-size:14px;font-weight:500;border:.5px solid var(--border);background:none;color:var(--muted);cursor:pointer;transition:all .15s;}
+.form-cancel:hover{background:var(--accent-light);color:var(--accent);}
+
+/* ── 사이드 메뉴 (우측 슬라이드) ─────────────────────────────────── */
+/* 오버레이: 메뉴 열릴 때 배경을 어둡게 */
+.overlay{position:fixed;inset:0;background:rgba(26,26,46,.4);opacity:0;visibility:hidden;transition:opacity .2s,visibility 0s linear .2s;z-index:90;}
+/* 사이드 패널: 기본은 화면 오른쪽 밖에 숨겨둠 */
+.sidemenu{position:fixed;top:0;right:0;height:100vh;width:260px;max-width:85vw;background:var(--card);border-left:.5px solid var(--border);transform:translateX(100%);transition:transform .25s;z-index:100;display:flex;flex-direction:column;}
+.sm-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:.5px solid var(--border);font-weight:600;}
+.sm-close{background:none;border:none;font-size:1.5rem;color:var(--muted);cursor:pointer;line-height:1;}
+.sm-close:hover{color:var(--text);}
+.sm-list{list-style:none;padding:6px 0;}
+.sm-list li button{display:block;width:100%;text-align:left;padding:11px 20px;font-size:14px;color:var(--text);border:none;background:none;cursor:pointer;transition:background .12s;}
+.sm-list li button:hover{background:var(--accent-light);color:var(--accent);}
+/* body에 .menu-open 클래스가 추가되면 오버레이·패널이 보이도록 토글 */
+body.menu-open .overlay{opacity:1;visibility:visible;transition:opacity .2s;}
+body.menu-open .sidemenu{transform:translateX(0);}
+
+footer{text-align:center;padding:0 0 32px;font-size:12px;color:var(--muted);}
+
+/* 데이터 없을 때 빈 상태 표시 */
+.empty{text-align:center;padding:40px 20px;color:var(--muted);}
+.empty-icon{font-size:2.5rem;margin-bottom:12px;}
+</style>
+</head>
+<body>
+
+<!-- ── 상단 헤더 ──────────────────────────────────────────────────────── -->
+<header>
+  <div class="topbar">
+    <!-- 로고: 클릭하면 홈으로 이동 -->
+    <div class="brand" onclick="nav('home')">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      </div>
+      <span class="brand-name">SubEco</span>
+    </div>
+    <!-- 헤더 버튼: 목록 / 새 구독 / 햄버거 메뉴 -->
+    <div class="header-actions">
+      <button class="btn" onclick="nav('list')">목록</button>
+      <button class="btn btn-primary" onclick="nav('new')">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        새 구독
+      </button>
+      <button class="btn" onclick="openMenu()" aria-label="메뉴">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- ── 홈 페이지 ──────────────────────────────────────────────────── -->
+  <div class="page active" id="page-home">
+    <!-- 인삿말 + 오늘 날짜 -->
+    <div class="greeting">
+      <h1>안녕하세요 👋<br>구독 현황이에요</h1>
+      <p id="today-date"></p>
+    </div>
+
+    <!-- 요약 지표 카드 3개 -->
+    <div class="summary">
+      <div class="metric">
+        <div class="metric-label">월 총 비용</div>
+        <div class="metric-value v-accent" id="total-monthly">₩0</div>
+        <div class="metric-sub">원화 환산 기준</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">구독 서비스</div>
+        <div class="metric-value" id="total-count">0개</div>
+        <div class="metric-sub" id="auto-count">자동결제 0개</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">이달 갱신</div>
+        <div class="metric-value v-warn" id="this-month-count">0건</div>
+        <div class="metric-sub" id="soon-count">7일 이내 0건</div>
+      </div>
+    </div>
+
+    <!-- 구독 카드 캐러셀 섹션 -->
+    <div class="section-head">
+      <div><span class="section-title">전체 구독</span><span class="section-hint"> · 드래그하여 탐색</span></div>
+      <button class="section-link" onclick="nav('list')">전체 보기 →</button>
+    </div>
+    <div class="carousel-outer" id="carouselOuter">
+      <div class="carousel" id="carousel"></div> <!-- JS가 카드 HTML을 채워넣음 -->
+    </div>
+
+    <br>
+
+    <!-- 갱신 임박 목록 섹션 -->
+    <div class="section-head" style="margin-top:4px;">
+      <span class="section-title">곧 갱신 예정</span>
+    </div>
+    <div class="upcoming" id="upcoming-list"></div> <!-- JS가 항목 HTML을 채워넣음 -->
+
+    <!-- 새 구독 추가 유도 버튼 -->
+    <button class="add-hint" onclick="nav('new')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      새 구독 서비스 추가하기
+    </button>
+  </div>
+
+  <!-- ── 목록 페이지 ─────────────────────────────────────────────────── -->
+  <div class="page" id="page-list">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+      <div class="page-title" style="margin-bottom:0;">전체 구독</div>
+      <button class="btn btn-primary" onclick="nav('new')">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        새 구독
+      </button>
+    </div>
+    <!-- JS가 구독 카드 그리드를 채워넣음 -->
+    <div class="list-grid" id="list-grid"></div>
+  </div>
+
+  <!-- ── 상세 페이지 ─────────────────────────────────────────────────── -->
+  <div class="page" id="page-detail">
+    <!-- 목록으로 돌아가기 -->
+    <button class="back-btn" onclick="nav('list')">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      목록으로
+    </button>
+    <!-- 상세 정보 카드 (JS가 채워넣음) -->
+    <div class="detail-card">
+      <div class="detail-header">
+        <div class="detail-service" id="detail-name"></div>
+        <div class="detail-price" id="detail-price"></div>
+        <div class="detail-cycle" id="detail-cycle"></div>
+      </div>
+      <div class="detail-rows">
+        <div class="detail-row"><span class="detail-row-label">시작일</span><span class="detail-row-value" id="detail-started"></span></div>
+        <div class="detail-row"><span class="detail-row-label">다음 갱신일</span><span class="detail-row-value" id="detail-renewal"></span></div>
+        <div class="detail-row"><span class="detail-row-label">통화</span><span class="detail-row-value" id="detail-currency"></span></div>
+        <div class="detail-row"><span class="detail-row-label">자동결제</span><span class="detail-row-value" id="detail-auto"></span></div>
+      </div>
+    </div>
+    <!-- 수정 / 삭제 액션 버튼 -->
+    <div class="action-row">
+      <button class="action-btn action-edit" id="detail-edit-btn">✏️ 수정</button>
+      <button class="action-btn action-delete" id="detail-delete-btn">🗑️ 삭제</button>
+    </div>
+  </div>
+
+  <!-- ── 등록/수정 폼 페이지 (new·edit 공용) ──────────────────────── -->
+  <div class="page" id="page-form">
+    <!-- 뒤로가기: 신규면 목록, 수정이면 상세로 -->
+    <button class="back-btn" id="form-back-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      <span id="form-back-label">돌아가기</span>
+    </button>
+    <div class="page-title" id="form-title">새 구독 등록</div>
+    <div class="form-card">
+      <!-- 서비스명 -->
+      <div class="form-group">
+        <label class="form-label">서비스명</label>
+        <input class="form-input" id="f-name" type="text" placeholder="예: Netflix, Spotify">
+      </div>
+      <!-- 금액 + 통화 (2열 배치) -->
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">금액</label>
+          <input class="form-input" id="f-price" type="number" min="0" placeholder="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">통화</label>
+          <select class="form-input" id="f-currency">
+            <option value="KRW">원 (KRW)</option>
+            <option value="USD">달러 (USD)</option>
+            <option value="JPY">엔 (JPY)</option>
+          </select>
+        </div>
+      </div>
+      <!-- 결제 주기 -->
+      <div class="form-group">
+        <label class="form-label">결제 주기</label>
+        <select class="form-input" id="f-cycle">
+          <option value="MONTHLY">월 갱신</option>
+          <option value="YEARLY">연 갱신</option>
+        </select>
+      </div>
+      <!-- 시작일 -->
+      <div class="form-group">
+        <label class="form-label">시작일</label>
+        <input class="form-input" id="f-started" type="date">
+      </div>
+      <!-- 자동결제 여부 -->
+      <div class="form-group">
+        <div class="checkbox-group">
+          <input type="checkbox" id="f-auto">
+          <label for="f-auto">자동 결제</label>
+        </div>
+      </div>
+      <!-- 취소 / 제출 버튼 -->
+      <div class="form-actions">
+        <button class="form-cancel" id="form-cancel-btn">취소</button>
+        <button class="form-submit" id="form-submit-btn">등록하기</button>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer>SubEco · 구독 관리 서비스</footer>
+
+<!-- ── 사이드 메뉴 ─────────────────────────────────────────────────────── -->
+<!-- 오버레이: 클릭하면 메뉴 닫힘 -->
+<div class="overlay" id="overlay" onclick="closeMenu()"></div>
+<!-- 슬라이드 패널 -->
+<aside class="sidemenu" id="sidemenu">
+  <div class="sm-head">
+    <span>메뉴</span>
+    <button class="sm-close" onclick="closeMenu()">×</button>
+  </div>
+  <ul class="sm-list">
+    <li><button onclick="closeMenu();nav('home')">홈</button></li>
+    <li><button onclick="closeMenu();nav('list')">구독 목록</button></li>
+    <li><button onclick="closeMenu();nav('new')">+ 새 구독 등록</button></li>
+  </ul>
+</aside>
+
+<script>
+// ════════════════════════════════════════════════════════════════════════════
+// 데이터 & 상수
+// ════════════════════════════════════════════════════════════════════════════
+
+// 원화 환산 환율 (폴백 고정값)
+const RATES = { KRW: 1, USD: 1490, JPY: 9.8 };
+
+// 서비스명 키워드 → 이모지 매핑
+const EMOJIS = { Netflix:'🎬', Spotify:'🎵', YouTube:'▶️', Claude:'🤖', Notion:'📝', ChatGPT:'💬', Nintendo:'🎮' };
+
+// 카드 상단 스트라이프 컬러 클래스 (순환 적용)
+const COLORS = ['c1','c2','c3','c4'];
+
+// localStorage에 저장된 데이터 불러오기. 없으면 시드 데이터 사용.
+let subs = JSON.parse(localStorage.getItem('subeco') || 'null') || [
+  {id:1, name:'Netflix',         price:17000, currency:'KRW', cycle:'MONTHLY', started:'2026-04-12', auto:true},
+  {id:2, name:'Spotify',         price:10900, currency:'KRW', cycle:'MONTHLY', started:'2026-05-01', auto:true},
+  {id:3, name:'YouTube Premium', price:14900, currency:'KRW', cycle:'MONTHLY', started:'2026-03-20', auto:true},
+  {id:4, name:'Claude Pro',      price:220,   currency:'USD', cycle:'YEARLY',  started:'2026-05-25', auto:true},
+  {id:5, name:'Notion',          price:10,    currency:'USD', cycle:'MONTHLY', started:'2026-05-08', auto:true},
+  {id:6, name:'ChatGPT Plus',    price:20,    currency:'USD', cycle:'MONTHLY', started:'2026-02-15', auto:false},
+  {id:7, name:'Nintendo Online', price:2400,  currency:'JPY', cycle:'YEARLY',  started:'2025-11-30', auto:false},
+];
+
+// 새 구독 등록 시 부여할 ID (기존 최대값 + 1)
+let nextId = Math.max(...subs.map(s=>s.id)) + 1;
+
+// 현재 수정 중인 구독 ID (null이면 신규 등록 모드)
+let editingId = null;
+
+// ════════════════════════════════════════════════════════════════════════════
+// 유틸리티 함수
+// ════════════════════════════════════════════════════════════════════════════
+
+/** 현재 subs 배열을 localStorage에 저장 */
+function save() { localStorage.setItem('subeco', JSON.stringify(subs)); }
+
+/**
+ * 서비스 이름에서 이모지를 반환.
+ * EMOJIS 키워드와 대소문자 무관하게 매칭, 없으면 기본 박스 이모지.
+ */
+function getEmoji(name) {
+  for (const k of Object.keys(EMOJIS)) if (name.toLowerCase().includes(k.toLowerCase())) return EMOJIS[k];
+  return '📦';
+}
+
+/**
+ * 구독 객체를 받아 통화 기호 + 금액 문자열 반환.
+ * 예) { price: 17000, currency: 'KRW' } → "₩17,000"
+ */
+function formatPrice(s) {
+  const sym = s.currency === 'KRW' ? '₩' : s.currency === 'USD' ? '$' : '¥';
+  return sym + s.price.toLocaleString();
+}
+
+/**
+ * 구독의 월 환산 원화 금액을 계산.
+ * 연간 결제는 12로 나눠 월 평균으로 환산.
+ */
+function toKrwMonthly(s) {
+  const krw = s.price * RATES[s.currency];
+  return s.cycle === 'YEARLY' ? Math.round(krw / 12) : krw;
+}
+
+/**
+ * 구독의 다음 갱신일(Date 객체)을 계산.
+ * started 날짜에서 오늘 이후가 될 때까지 주기(월/년)를 반복해서 더함.
+ */
+function nextRenewal(s) {
+  const d = new Date(s.started);
+  const today = new Date(); today.setHours(0,0,0,0);
+  while (d <= today) {
+    s.cycle === 'MONTHLY' ? d.setMonth(d.getMonth()+1) : d.setFullYear(d.getFullYear()+1);
+  }
+  return d;
+}
+
+/**
+ * Date 객체를 "2026년 6월 1일" 형식의 문자열로 변환.
+ */
+function formatDate(d) {
+  return `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일`;
+}
+
+/**
+ * 오늘로부터 주어진 날짜까지 남은 일수를 반환.
+ * 오늘이면 0, 내일이면 1.
+ */
+function daysUntil(d) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  return Math.round((d - today) / 86400000);
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// 페이지 네비게이션 (SPA 방식)
+// ════════════════════════════════════════════════════════════════════════════
+
+/**
+ * 지정한 페이지를 활성화하고 해당 렌더 함수를 호출.
+ * @param {string} page - 'home' | 'list' | 'detail' | 'new' | 'edit'
+ * @param {number} [id]  - detail·edit 전환 시 대상 구독 ID
+ */
+function nav(page, id) {
+  // 모든 페이지 숨김 후 대상만 표시
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  // new·edit은 같은 form 페이지를 공유
+  document.getElementById('page-' + (page === 'new' || page === 'edit' ? 'form' : page)).classList.add('active');
+  window.scrollTo(0, 0);
+  // 페이지별 렌더 함수 호출
+  if (page === 'home')   renderHome();
+  else if (page === 'list')   renderList();
+  else if (page === 'detail') renderDetail(id);
+  else if (page === 'new')    openForm(null);
+  else if (page === 'edit')   openForm(id);
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// 홈 페이지 렌더링
+// ════════════════════════════════════════════════════════════════════════════
+
+function renderHome() {
+  const now = new Date();
+
+  // 오늘 날짜 텍스트 업데이트
+  document.getElementById('today-date').textContent =
+    `${now.getFullYear()}년 ${now.getMonth()+1}월 ${now.getDate()}일 기준 · 원화 환산`;
+
+  // 요약 지표 계산
+  const totalMonthly = subs.reduce((a, s) => a + toKrwMonthly(s), 0); // 월 총 비용
+  const autoCount    = subs.filter(s => s.auto).length;               // 자동결제 수
+  const thisMonth    = subs.filter(s => {                              // 이달 갱신 건수
+    const d = nextRenewal(s);
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  }).length;
+  const soonCount = subs.filter(s => daysUntil(nextRenewal(s)) <= 7).length; // 7일 이내
+
+  // 요약 카드 DOM 업데이트
+  document.getElementById('total-monthly').textContent    = '₩' + totalMonthly.toLocaleString();
+  document.getElementById('total-count').textContent      = subs.length + '개';
+  document.getElementById('auto-count').textContent       = '자동결제 ' + autoCount + '개';
+  document.getElementById('this-month-count').textContent = thisMonth + '건';
+  document.getElementById('soon-count').textContent       = '7일 이내 ' + soonCount + '건';
+
+  // 캐러셀 카드 HTML 생성 및 삽입
+  const carousel = document.getElementById('carousel');
+  carousel.innerHTML = subs.map((s, i) => {
+    const d = nextRenewal(s);
+    return `<div class="sub-card ${COLORS[i%4]}" onclick="nav('detail',${s.id})">
+      <div class="card-service">${getEmoji(s.name)} ${s.name}</div>
+      <div class="card-price">${formatPrice(s)}</div>
+      <div class="card-cycle">${s.cycle === 'MONTHLY' ? '월 갱신' : '연 갱신'}</div>
+      <div class="card-div"></div>
+      <div class="card-renewal">다음 갱신 <b>${formatDate(d)}</b></div>
+      <span class="badge ${s.auto ? 'badge-auto' : 'badge-manual'}">${s.auto ? '자동결제' : '수동결제'}</span>
+    </div>`;
+  }).join('');
+
+  // 갱신 예정 리스트: 가장 빠른 4건을 오름차순 정렬해 표시
+  const sorted = [...subs].sort((a,b) => nextRenewal(a) - nextRenewal(b)).slice(0, 4);
+  const dotColors = ['var(--accent2)','var(--accent)','var(--green)','var(--pink)'];
+  document.getElementById('upcoming-list').innerHTML = sorted.map((s, i) => {
+    const d = nextRenewal(s);
+    const days = daysUntil(d);
+    const tagClass = days <= 7 ? 'utag-soon' : 'utag-ok'; // 7일 이내면 경고 색상
+    const tagText  = days === 0 ? '오늘' : days + '일 후';
+    return `<div class="uitem" onclick="nav('detail',${s.id})">
+      <div class="udot" style="background:${dotColors[i%4]}"></div>
+      <div class="uinfo">
+        <div class="uname">${s.name}</div>
+        <div class="umeta">${s.currency} · ${s.cycle==='MONTHLY'?'월':'연'} 갱신 · ${s.auto?'자동':'수동'}결제</div>
+      </div>
+      <div class="uamt">${formatPrice(s)}</div>
+      <div class="utag ${tagClass}">${tagText}</div>
+    </div>`;
+  }).join('');
+
+  initCarousel(); // 드래그 스크롤 이벤트 초기화
+}
+
+/**
+ * 캐러셀 마우스 드래그 스크롤 초기화.
+ * mousedown → mousemove로 scrollLeft를 조작, rAF으로 부드럽게 처리.
+ * 드래그 거리가 5px 이상이면 click 이벤트를 취소해 카드 링크 오작동 방지.
+ */
+function initCarousel() {
+  const el = document.getElementById('carouselOuter');
+  let isDown=false, startX=0, sl=0, moved=0, pending=null, raf=null;
+
+  // 마우스 누름: 시작 좌표·스크롤 위치 기록
+  el.onmousedown = e => { isDown=true; moved=0; startX=e.pageX; sl=el.scrollLeft; e.preventDefault(); };
+
+  // 드래그 종료: 상태 초기화
+  const end = () => {
+    if(!isDown) return;
+    isDown=false;
+    el.classList.remove('dragging');
+    if(raf){ cancelAnimationFrame(raf); raf=null; }
+  };
+  window.addEventListener('mouseup', end);
+
+  // 마우스 이동: scrollLeft를 rAF 배치로 갱신
+  el.onmousemove = e => {
+    if(!isDown) return;
+    const w = e.pageX - startX;
+    moved = Math.max(moved, Math.abs(w));
+    if(moved > 5) el.classList.add('dragging'); // 5px 초과 시 dragging 상태
+    pending = sl - w;
+    if(!raf) raf = requestAnimationFrame(() => {
+      raf=null;
+      if(pending != null){ el.scrollLeft=pending; pending=null; }
+    });
+  };
+
+  // HTML5 drag 기본 동작 차단 (고스트 이미지 방지)
+  el.addEventListener('dragstart', e => e.preventDefault());
+
+  // 드래그 중이었으면 click 이벤트 취소 (카드 이동 방지)
+  el.addEventListener('click', e => {
+    if(moved > 5){ e.preventDefault(); e.stopPropagation(); }
+  }, true);
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// 목록 페이지 렌더링
+// ════════════════════════════════════════════════════════════════════════════
+
+function renderList() {
+  // 구독이 없으면 빈 상태 UI 표시
+  if (subs.length === 0) {
+    document.getElementById('list-grid').innerHTML =
+      `<div class="empty" style="grid-column:1/-1"><div class="empty-icon">📭</div><p>등록된 구독이 없어요</p></div>`;
+    return;
+  }
+  // 구독 카드 그리드 HTML 생성
+  document.getElementById('list-grid').innerHTML = subs.map((s, i) => {
+    const d = nextRenewal(s);
+    return `<div class="list-card ${COLORS[i%4]}" onclick="nav('detail',${s.id})">
+      <div class="card-service">${getEmoji(s.name)} ${s.name}</div>
+      <div class="card-price">${formatPrice(s)}</div>
+      <div class="card-cycle">${s.cycle === 'MONTHLY' ? '월 갱신' : '연 갱신'}</div>
+      <div class="card-div"></div>
+      <div class="card-renewal">다음 갱신 <b>${formatDate(d)}</b></div>
+      <span class="badge ${s.auto ? 'badge-auto' : 'badge-manual'}">${s.auto ? '자동결제' : '수동결제'}</span>
+    </div>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// 상세 페이지 렌더링
+// ════════════════════════════════════════════════════════════════════════════
+
+/**
+ * 구독 ID로 상세 정보를 DOM에 채워넣고 수정·삭제 버튼 핸들러를 등록.
+ * @param {number} id - 표시할 구독의 id
+ */
+function renderDetail(id) {
+  const s = subs.find(x => x.id === id);
+  if (!s) { nav('list'); return; } // ID가 없으면 목록으로 fallback
+
+  const d = nextRenewal(s);
+  document.getElementById('detail-name').textContent    = getEmoji(s.name) + ' ' + s.name;
+  document.getElementById('detail-price').textContent   = formatPrice(s);
+  document.getElementById('detail-cycle').textContent   = s.cycle === 'MONTHLY' ? '월 갱신' : '연 갱신';
+  document.getElementById('detail-started').textContent = s.started;
+  document.getElementById('detail-renewal').textContent = formatDate(d);
+  document.getElementById('detail-currency').textContent =
+    s.currency === 'KRW' ? '원 (KRW)' : s.currency === 'USD' ? '달러 (USD)' : '엔 (JPY)';
+  document.getElementById('detail-auto').innerHTML =
+    `<span class="badge ${s.auto?'badge-auto':'badge-manual'}">${s.auto?'자동결제':'수동결제'}</span>`;
+
+  // 수정 버튼: 폼 페이지로 이동
+  document.getElementById('detail-edit-btn').onclick = () => nav('edit', id);
+
+  // 삭제 버튼: 확인 후 배열에서 제거 → 저장 → 목록 이동
+  document.getElementById('detail-delete-btn').onclick = () => {
+    if (confirm(`'${s.name}' 구독을 삭제할까요?`)) {
+      subs = subs.filter(x => x.id !== id);
+      save();
+      nav('list');
+    }
+  };
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// 등록/수정 폼
+// ════════════════════════════════════════════════════════════════════════════
+
+/**
+ * 폼 페이지를 초기화.
+ * id가 null이면 신규 등록 모드, 값이 있으면 수정 모드로 기존 데이터를 채워넣음.
+ * @param {number|null} id - 수정 대상 구독 ID (신규면 null)
+ */
+function openForm(id) {
+  editingId = id;
+  const isEdit = id !== null;
+
+  // 제목·버튼 레이블을 모드에 맞게 변경
+  document.getElementById('form-title').textContent      = isEdit ? '구독 수정' : '새 구독 등록';
+  document.getElementById('form-submit-btn').textContent = isEdit ? '저장하기' : '등록하기';
+  document.getElementById('form-back-label').textContent = isEdit ? '상세로' : '목록으로';
+
+  // 뒤로가기·취소 버튼의 목적지 설정
+  document.getElementById('form-back-btn').onclick   = () => nav(isEdit ? 'detail' : 'list', id);
+  document.getElementById('form-cancel-btn').onclick = () => nav(isEdit ? 'detail' : 'list', id);
+
+  if (isEdit) {
+    // 수정 모드: 기존 값으로 폼 채우기
+    const s = subs.find(x => x.id === id);
+    document.getElementById('f-name').value      = s.name;
+    document.getElementById('f-price').value     = s.price;
+    document.getElementById('f-currency').value  = s.currency;
+    document.getElementById('f-cycle').value     = s.cycle;
+    document.getElementById('f-started').value   = s.started;
+    document.getElementById('f-auto').checked    = s.auto;
+  } else {
+    // 신규 모드: 폼 초기화 (시작일은 오늘로 기본값)
+    document.getElementById('f-name').value      = '';
+    document.getElementById('f-price').value     = '';
+    document.getElementById('f-currency').value  = 'KRW';
+    document.getElementById('f-cycle').value     = 'MONTHLY';
+    document.getElementById('f-started').value   = new Date().toISOString().slice(0,10);
+    document.getElementById('f-auto').checked    = false;
+  }
+
+  document.getElementById('form-submit-btn').onclick = submitForm;
+}
+
+/**
+ * 폼 제출 처리.
+ * 유효성 검사 후 신규 등록 또는 기존 항목 수정을 수행하고 저장.
+ */
+function submitForm() {
+  const name     = document.getElementById('f-name').value.trim();
+  const price    = parseInt(document.getElementById('f-price').value);
+  const currency = document.getElementById('f-currency').value;
+  const cycle    = document.getElementById('f-cycle').value;
+  const started  = document.getElementById('f-started').value;
+  const auto     = document.getElementById('f-auto').checked;
+
+  // 필수 입력값 검증
+  if (!name || !price || !started) { alert('모든 항목을 입력해주세요.'); return; }
+
+  if (editingId !== null) {
+    // 수정 모드: 기존 객체를 찾아 필드 업데이트
+    const s = subs.find(x => x.id === editingId);
+    Object.assign(s, { name, price, currency, cycle, started, auto });
+    save();
+    nav('detail', editingId);
+  } else {
+    // 신규 등록: 배열에 추가 후 목록으로 이동
+    subs.push({ id: nextId++, name, price, currency, cycle, started, auto });
+    save();
+    nav('list');
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// 사이드 메뉴 토글
+// ════════════════════════════════════════════════════════════════════════════
+
+/** body에 .menu-open 클래스를 추가해 CSS 트랜지션으로 패널·오버레이 표시 */
+function openMenu()  { document.body.classList.add('menu-open'); }
+function closeMenu() { document.body.classList.remove('menu-open'); }
+
+// ESC 키로 메뉴 닫기
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMenu(); });
+
+// ════════════════════════════════════════════════════════════════════════════
+// 초기 실행
+// ════════════════════════════════════════════════════════════════════════════
+renderHome();
+</script>
+</body>
+</html>

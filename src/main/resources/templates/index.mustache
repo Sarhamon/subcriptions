@@ -1,7 +1,108 @@
-{{! 현재는 사용되지 않는 임시 랜딩 뷰. 루트("/")는 HomeController가 /subscriptions로 리다이렉트한다. }}
 {{>layouts/header}}
 
-<h1>구독 목록</h1>
-<p>여기에 등록된 구독 서비스 목록이 표시됩니다.</p>
+<div class="greeting">
+    <h1>안녕하세요<br>구독 현황이에요</h1>
+    <p>{{todayLabel}}</p>
+</div>
+
+<div class="summary">
+    <div class="metric">
+        <div class="metric-label">월 총 비용</div>
+        <div class="metric-value v-accent">₩{{totalMonthlyKrw}}</div>
+        <div class="metric-sub">원화 환산 기준</div>
+    </div>
+    <div class="metric">
+        <div class="metric-label">구독 서비스</div>
+        <div class="metric-value">{{totalCount}}</div>
+        <div class="metric-sub">{{autoCount}}</div>
+    </div>
+    <div class="metric">
+        <div class="metric-label">이달 갱신</div>
+        <div class="metric-value v-warn">{{thisMonthCount}}</div>
+        <div class="metric-sub">{{soonCount}}</div>
+    </div>
+</div>
+
+<div class="section-head">
+    <div><span class="section-title">전체 구독</span><span class="section-hint"> · 드래그하여 탐색</span></div>
+    <a class="section-link" href="/subscriptions">전체 보기 →</a>
+</div>
+<div class="carousel-outer" id="carouselOuter">
+    <div class="carousel">
+        {{#subscriptions}}
+        <a class="sub-card {{colorClass}}" href="/subscriptions/{{id}}">
+            <div class="card-service">{{emoji}} {{serviceName}}</div>
+            <div class="card-price">{{displayPrice}}</div>
+            <div class="card-cycle">{{billingCycle.label}}</div>
+            <div class="card-div"></div>
+            <div class="card-renewal">다음 갱신 <b>{{nextRenewalDate}}</b></div>
+            <span class="badge {{#autoRenew}}badge-auto{{/autoRenew}}{{^autoRenew}}badge-manual{{/autoRenew}}">
+                {{#autoRenew}}자동결제{{/autoRenew}}{{^autoRenew}}수동결제{{/autoRenew}}
+            </span>
+        </a>
+        {{/subscriptions}}
+    </div>
+</div>
+
+<div class="section-head" style="margin-top:20px;">
+    <span class="section-title">곧 갱신 예정</span>
+</div>
+<div class="upcoming">
+    {{#upcomingList}}
+    <a class="uitem" href="/subscriptions/{{id}}">
+        <div class="udot udot-{{colorClass}}"></div>
+        <div class="uinfo">
+            <div class="uname">{{serviceName}}</div>
+            <div class="umeta">{{currency.label}} · {{billingCycle.label}} · {{#autoRenew}}자동{{/autoRenew}}{{^autoRenew}}수동{{/autoRenew}}결제</div>
+        </div>
+        <div class="uamt">{{displayPrice}}</div>
+        <div class="utag {{#dueSoon7}}utag-soon{{/dueSoon7}}{{^dueSoon7}}utag-ok{{/dueSoon7}}">{{daysText}}</div>
+    </a>
+    {{/upcomingList}}
+</div>
+
+<a class="add-hint" href="/subscriptions/new">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+    새 구독 서비스 추가하기
+</a>
+
+<script>
+    (function () {
+        var el = document.getElementById('carouselOuter');
+        if (!el) return;
+        var isDown = false, startX = 0, sl = 0, moved = 0, pending = null, raf = null;
+
+        el.addEventListener('mousedown', function (e) {
+            isDown = true; moved = 0; startX = e.pageX; sl = el.scrollLeft;
+            e.preventDefault();
+        });
+
+        function end() {
+            if (!isDown) return;
+            isDown = false;
+            el.classList.remove('dragging');
+            if (raf) { cancelAnimationFrame(raf); raf = null; }
+        }
+        window.addEventListener('mouseup', end);
+        el.addEventListener('mouseleave', end);
+
+        el.addEventListener('mousemove', function (e) {
+            if (!isDown) return;
+            var w = e.pageX - startX;
+            moved = Math.max(moved, Math.abs(w));
+            if (moved > 5) el.classList.add('dragging');
+            pending = sl - w;
+            if (!raf) raf = requestAnimationFrame(function () {
+                raf = null;
+                if (pending !== null) { el.scrollLeft = pending; pending = null; }
+            });
+        });
+
+        el.addEventListener('dragstart', function (e) { e.preventDefault(); });
+        el.addEventListener('click', function (e) {
+            if (moved > 5) { e.preventDefault(); e.stopPropagation(); }
+        }, true);
+    })();
+</script>
 
 {{>layouts/footer}}
