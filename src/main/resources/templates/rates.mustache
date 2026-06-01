@@ -1,6 +1,11 @@
 {{>layouts/header}}
 
-<div class="page-title">현재 환율</div>
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+    <div class="page-title" style="margin-bottom:0;">현재 환율</div>
+    <span class="utag {{#realTime}}utag-ok{{/realTime}}{{^realTime}}utag-soon{{/realTime}}">
+        {{#realTime}}실시간{{/realTime}}{{^realTime}}폴백{{/realTime}}
+    </span>
+</div>
 
 <div class="detail-card">
     <div class="detail-rows">
@@ -19,6 +24,21 @@
     </div>
 </div>
 
-<p class="rate-note">출처: Frankfurter API · 매일 자정 자동 갱신</p>
+<p class="rate-note">
+    출처: Frankfurter API · 매일 자정 자동 갱신
+    {{#lastUpdated}} · 마지막 갱신: {{lastUpdated}}{{/lastUpdated}}
+</p>
+
+{{#lastError}}
+<div class="error-detail" style="margin-top:12px;">
+    API 호출 실패: {{lastError}}
+</div>
+{{/lastError}}
+
+<form action="/rates/refresh" method="post" style="margin-top:16px;">
+    <button type="submit" class="btn" style="width:100%;justify-content:center;">
+        ↻ 지금 환율 갱신
+    </button>
+</form>
 
 {{>layouts/footer}}

@@ -281,7 +281,8 @@ main {
 .card-div {
     height: .5px;
     background: var(--border);
-    margin: 12px 0;
+    margin-top: auto;
+    margin-bottom: 12px;
 }
 
 .card-renewal {
