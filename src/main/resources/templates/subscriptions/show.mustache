@@ -25,6 +25,13 @@
             <span class="detail-row-value">{{subscription.currency.label}}</span>
         </div>
         <div class="detail-row">
+            <span class="detail-row-label">태그</span>
+            <span class="detail-row-value">
+                {{#subscription.tags}}<span class="tag-pill">{{label}}</span>{{/subscription.tags}}
+                {{^subscription.tags}}—{{/subscription.tags}}
+            </span>
+        </div>
+        <div class="detail-row">
             <span class="detail-row-label">자동결제</span>
             <span class="detail-row-value">
                 <span class="badge {{#subscription.autoRenew}}badge-auto{{/subscription.autoRenew}}{{^subscription.autoRenew}}badge-manual{{/subscription.autoRenew}}">

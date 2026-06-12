@@ -3,11 +3,13 @@ package com.framework.subcriptions.dto;
 import com.framework.subcriptions.domain.BillingCycle;
 import com.framework.subcriptions.domain.Currency;
 import com.framework.subcriptions.domain.Subscription;
+import com.framework.subcriptions.domain.Tag;
 import com.framework.subcriptions.service.ExchangeRateService;
 import lombok.Getter;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 @Getter
 public class SubscriptionView {
@@ -28,6 +30,7 @@ public class SubscriptionView {
     private final String colorClass; // c1~c4 (카드 상단 스트라이프)
     private final String emoji;      // 서비스 아이콘
     private final int monthlyKrw;    // 월 환산 원화 (연간 ÷ 12, 홈 지표용)
+    private final List<Tag> tags;    // 분류 태그 (enum 순서로 정렬해 표기 일관성 확보)
 
     public SubscriptionView(Subscription s, ExchangeRateService rateService) {
         this.id = s.getId();
@@ -46,6 +49,7 @@ public class SubscriptionView {
         this.colorClass = resolveColorClass(s.getId());
         this.emoji = resolveEmoji(s.getServiceName());
         this.monthlyKrw = calcMonthlyKrw(s, rateService);
+        this.tags = s.getTags().stream().sorted().toList();
     }
 
     private static String buildDisplayPrice(Subscription s, ExchangeRateService rateService) {

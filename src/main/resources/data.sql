@@ -8,3 +8,13 @@ INSERT INTO subscription (service_name, price, currency, billing_cycle, started_
     ('Notion',             11, 'USD', 'MONTHLY', '2026-05-08', TRUE),
     ('ChatGPT Plus',       22, 'USD', 'MONTHLY', '2026-05-04', FALSE),
     ('Nintendo Online',  2400, 'JPY', 'YEARLY',  '2025-11-30', FALSE);
+
+-- 위 INSERT 순서대로 부여된 id(1~7)에 분류 태그를 연결한다 (subscription_tags 조인 테이블).
+INSERT INTO subscription_tags (subscription_id, tag) VALUES
+    (1, 'ENTERTAINMENT'),
+    (2, 'MUSIC'),
+    (3, 'ENTERTAINMENT'), (3, 'MUSIC'),
+    (4, 'AI'),
+    (5, 'PRODUCTIVITY'),
+    (6, 'AI'),
+    (7, 'GAME');

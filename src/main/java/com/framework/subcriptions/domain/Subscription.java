@@ -8,6 +8,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 // 구독 1건을 표현하는 JPA 엔티티. 빌더로만 생성하도록 모든 생성자를 캡슐화.
 @Entity
@@ -48,6 +50,15 @@ public class Subscription {
     @Column(nullable = false)
     private boolean autoRenew;
 
+    // 분류 태그 집합. 별도 엔티티 대신 ElementCollection으로 조인 테이블에 문자열로 저장.
+    @ElementCollection(fetch = FetchType.EAGER)
+    @Enumerated(EnumType.STRING)
+    @CollectionTable(name = "subscription_tags",
+            joinColumns = @JoinColumn(name = "subscription_id"))
+    @Column(name = "tag")
+    @Builder.Default
+    private Set<Tag> tags = new HashSet<>();
+
     // 다음 갱신일 계산. startedAt + 결제 주기.
     public LocalDate getNextRenewalDate() {
         return billingCycle.addTo(startedAt);
@@ -60,12 +71,14 @@ public class Subscription {
 
     // 폼에서 받은 값으로 엔티티 상태를 갱신. setter 노출 대신 의도가 드러나는 메서드 제공.
     public void updateDetails(String serviceName, Integer price, Currency currency,
-                              BillingCycle billingCycle, LocalDate startedAt, boolean autoRenew) {
+                              BillingCycle billingCycle, LocalDate startedAt, boolean autoRenew,
+                              Set<Tag> tags) {
         this.serviceName = serviceName;
         this.price = price;
         this.currency = currency;
         this.billingCycle = billingCycle;
         this.startedAt = startedAt;
         this.autoRenew = autoRenew;
+        this.tags = tags == null ? new HashSet<>() : tags;
     }
 }

@@ -2,6 +2,7 @@ package com.framework.subcriptions.service;
 
 import com.framework.subcriptions.domain.Subscription;
 import com.framework.subcriptions.domain.SubscriptionNotFoundException;
+import com.framework.subcriptions.domain.Tag;
 import com.framework.subcriptions.dto.SubscriptionForm;
 import com.framework.subcriptions.dto.SubscriptionView;
 import com.framework.subcriptions.repository.SubscriptionRepository;
@@ -21,13 +22,20 @@ public class SubscriptionService {
     private final SubscriptionRepository repository;
     private final ExchangeRateService exchangeRateService;
 
-    // 전체 조회. 조회 시점에 지난 갱신일을 한꺼번에 따라잡아 화면 일관성을 보장.
+    // 전체 조회. 태그 필터 없이 모두 반환.
     @Transactional
     public List<SubscriptionView> findAll() {
+        return findAll(null);
+    }
+
+    // 태그로 필터링한 조회. filterTag가 null이면 전체. 조회 시점에 지난 갱신일을 함께 따라잡는다.
+    @Transactional
+    public List<SubscriptionView> findAll(Tag filterTag) {
         LocalDate today = LocalDate.now();
         List<Subscription> all = repository.findAll();
         all.forEach(s -> applyRenewalIfDue(s, today));
         return all.stream()
+                .filter(s -> filterTag == null || s.getTags().contains(filterTag))
                 .map(s -> new SubscriptionView(s, exchangeRateService))
                 .toList();
     }
@@ -58,7 +66,8 @@ public class SubscriptionService {
                 form.getCurrency(),
                 form.getBillingCycle(),
                 form.getStartedAt(),
-                form.isAutoRenew()
+                form.isAutoRenew(),
+                form.getTags()
         );
         return existing;
     }

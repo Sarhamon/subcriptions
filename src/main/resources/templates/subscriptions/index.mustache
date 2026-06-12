@@ -2,12 +2,20 @@
 
 <div class="page-title">전체 구독</div>
 
+<div class="tag-filter">
+    <a class="tag-chip" data-tag="" href="/subscriptions">전체</a>
+    {{#allTags}}
+    <a class="tag-chip" data-tag="{{name}}" href="/subscriptions?tag={{name}}">{{label}}</a>
+    {{/allTags}}
+</div>
+
 <div class="list-grid">
     {{#subscriptions}}
     <a class="list-card {{colorClass}}" href="/subscriptions/{{id}}">
         <div class="card-service">{{emoji}} {{serviceName}}</div>
         <div class="card-price">{{displayPrice}}</div>
         <div class="card-cycle">{{billingCycle.label}}</div>
+        {{#tags}}<span class="tag-pill">{{label}}</span>{{/tags}}
         <div class="card-div"></div>
         <div class="card-renewal">다음 갱신 <b>{{nextRenewalDate}}</b></div>
         <span class="badge {{#autoRenew}}badge-auto{{/autoRenew}}{{^autoRenew}}badge-manual{{/autoRenew}}">
@@ -23,5 +31,15 @@
     <p>등록된 구독이 없어요</p>
 </div>
 {{/subscriptions}}
+
+<script>
+    // 현재 ?tag= 값과 일치하는 필터 칩을 활성화 표시.
+    (function () {
+        var sel = new URLSearchParams(location.search).get('tag') || '';
+        document.querySelectorAll('.tag-chip').forEach(function (c) {
+            if (c.dataset.tag === sel) c.classList.add('tag-chip-active');
+        });
+    })();
+</script>
 
 {{>layouts/footer}}

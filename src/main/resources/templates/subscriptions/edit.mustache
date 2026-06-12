@@ -45,6 +45,17 @@
                 <label for="autoRenew">자동 결제</label>
             </div>
         </div>
+        <div class="form-group">
+            <label class="form-label">태그</label>
+            <div class="tag-checks">
+                {{#allTags}}
+                <label class="tag-check">
+                    <input type="checkbox" name="tags" value="{{name}}">
+                    <span>{{label}}</span>
+                </label>
+                {{/allTags}}
+            </div>
+        </div>
         <div class="form-actions">
             <a class="form-cancel" href="/subscriptions/{{subscription.id}}">취소</a>
             <button type="submit" class="form-submit">저장하기</button>
@@ -55,6 +66,12 @@
 <script>
     document.querySelector('select[name="currency"]').value   = "{{subscription.currency.name}}";
     document.querySelector('select[name="billingCycle"]').value = "{{subscription.billingCycle.name}}";
+
+    // 기존에 선택돼 있던 태그 체크박스를 미리 체크.
+    [{{#subscription.tags}}"{{name}}",{{/subscription.tags}}].forEach(function (t) {
+        var el = document.querySelector('input[name="tags"][value="' + t + '"]');
+        if (el) el.checked = true;
+    });
 </script>
 
 {{>layouts/footer}}

@@ -2,6 +2,7 @@ package com.framework.subcriptions.controller;
 
 import com.framework.subcriptions.domain.BillingCycle;
 import com.framework.subcriptions.domain.Currency;
+import com.framework.subcriptions.domain.Tag;
 import com.framework.subcriptions.dto.SubscriptionForm;
 import com.framework.subcriptions.service.SubscriptionService;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 // 구독 CRUD HTTP 진입점. 모든 요청을 SubscriptionService에 위임하고 뷰 이름만 결정.
 @Controller
@@ -21,11 +23,12 @@ public class SubscriptionController {
     // Lombok @RequiredArgsConstructor가 final 필드 주입용 생성자를 자동 생성.
     private final SubscriptionService service;
 
-    // GET /subscriptions — 전체 구독 카드 목록 페이지.
+    // GET /subscriptions — 전체 구독 카드 목록 페이지. tag 파라미터가 있으면 해당 태그만 필터.
     @GetMapping
-    public String index(Model model) {
+    public String index(@RequestParam(required = false) Tag tag, Model model) {
         model.addAttribute("title", "전체 구독");
-        model.addAttribute("subscriptions", service.findAll());
+        model.addAttribute("subscriptions", service.findAll(tag));
+        model.addAttribute("allTags", Tag.values());
         return "subscriptions/index";
     }
 
@@ -35,6 +38,7 @@ public class SubscriptionController {
         model.addAttribute("title", "구독 등록");
         model.addAttribute("cycles", BillingCycle.values());
         model.addAttribute("currencies", Currency.values());
+        model.addAttribute("allTags", Tag.values());
         return "subscriptions/new";
     }
 
@@ -60,6 +64,7 @@ public class SubscriptionController {
         model.addAttribute("subscription", service.findById(id));
         model.addAttribute("cycles", BillingCycle.values());
         model.addAttribute("currencies", Currency.values());
+        model.addAttribute("allTags", Tag.values());
         return "subscriptions/edit";
     }
 
