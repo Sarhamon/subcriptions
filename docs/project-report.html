@@ -326,11 +326,13 @@
         <div class="card-title">주요 기능</div>
         <ul style="color:var(--muted);font-size:14px;padding-left:18px;line-height:2;">
           <li>구독 CRUD (서비스명·금액·통화·결제주기·자동결제)</li>
+          <li>REST API — <code>/api/subscriptions</code> JSON CRUD</li>
           <li>다음 갱신일 자동 계산 (<code>startedAt + BillingCycle</code>)</li>
           <li>실시간 환율 연동 (USD·JPY → KRW 환산)</li>
           <li>갱신 임박 알림 (3일·7일 이내 강조)</li>
           <li>홈 대시보드 (합산 지출·갱신 건수·임박 목록)</li>
-          <li>환율 조회 페이지 (실시간/폴백 상태 표시)</li>
+          <li>댓글(메모) 엔티티 — 구독별 메모 저장 기반</li>
+          <li>MockMvc·리파지터리 테스트 9개</li>
         </ul>
       </div>
       <div class="card">
@@ -383,6 +385,10 @@
         <div class="stack-item-name">Java 17</div>
         <div class="stack-item-desc">Record, Switch 표현식</div>
       </div>
+      <div class="stack-item">
+        <div class="stack-item-name">JUnit 5 · MockMvc</div>
+        <div class="stack-item-desc">REST 통합 · 리파지터리 테스트</div>
+      </div>
     </div>
   </div>
 
@@ -409,6 +415,8 @@
             <li><code>Subscription</code> — JPA 엔티티, Builder 패턴</li>
             <li><code>BillingCycle</code> — MONTHLY / YEARLY enum</li>
             <li><code>Currency</code> — KRW / USD / JPY + 폴백 환율</li>
+            <li><code>Tag</code> — 구독 분류 enum (ElementCollection)</li>
+            <li><code>Comment</code> — 구독 → 댓글 단방향 @ManyToOne</li>
             <li><code>SubscriptionView</code> — 렌더링 전용 DTO</li>
           </ul>
         </div>
@@ -422,6 +430,7 @@
           <ul style="color:var(--muted);font-size:13px;padding-left:16px;line-height:1.9;">
             <li><code>HomeController</code> — 대시보드 지표 계산</li>
             <li><code>SubscriptionController</code> — CRUD 라우팅</li>
+            <li><code>SubscriptionApiController</code> — REST API (JSON)</li>
             <li><code>RatesController</code> — 환율 조회·수동 갱신</li>
           </ul>
         </div>
@@ -487,6 +496,31 @@
           <td><span class="method post">POST</span></td>
           <td><code>/rates/refresh</code></td>
           <td>환율 수동 갱신 트리거</td>
+        </tr>
+        <tr>
+          <td><span class="method get">GET</span></td>
+          <td><code>/api/subscriptions</code></td>
+          <td>REST — 구독 목록 JSON</td>
+        </tr>
+        <tr>
+          <td><span class="method get">GET</span></td>
+          <td><code>/api/subscriptions/{id}</code></td>
+          <td>REST — 단건 JSON (없으면 404 JSON)</td>
+        </tr>
+        <tr>
+          <td><span class="method post">POST</span></td>
+          <td><code>/api/subscriptions</code></td>
+          <td>REST — 생성 (201 + 생성 JSON)</td>
+        </tr>
+        <tr>
+          <td><span class="method post">PATCH</span></td>
+          <td><code>/api/subscriptions/{id}</code></td>
+          <td>REST — 수정 (200 + 수정 JSON)</td>
+        </tr>
+        <tr>
+          <td><span class="method post">DELETE</span></td>
+          <td><code>/api/subscriptions/{id}</code></td>
+          <td>REST — 삭제 (204)</td>
         </tr>
       </tbody>
     </table>
@@ -779,6 +813,47 @@ Jackson 직접 의존 없이 사용 가능. <code>toString()</code> 경유 BigDe
       </div>
     </div>
 
+    <!-- 문제 9 -->
+    <div class="problem">
+      <div class="problem-header">
+        <div class="problem-num">9</div>
+        <div>
+          <div class="problem-title">REST API 테스트 작성 — Spring Boot 4에서 테스트 import 패키지가 달라짐</div>
+          <span class="problem-tag tag-error">컴파일 오류</span>
+          <span class="problem-tag tag-deprec">Spring Boot 4</span>
+        </div>
+      </div>
+      <div class="problem-body">
+        <h4>현상</h4>
+        <p>
+          <code>/api/subscriptions</code> REST API를 <code>MockMvc</code>로 검증하는 통합 테스트를 작성하고
+          <code>./gradlew test</code> 실행 시 컴파일 단계에서 4건의 "cannot find symbol" 오류 발생.
+        </p>
+        <div class="error-block">error: package com.fasterxml.jackson.databind does not exist
+import com.fasterxml.jackson.databind.ObjectMapper;
+error: package org.springframework.boot.test.autoconfigure.web.servlet does not exist
+@AutoConfigureMockMvc</div>
+        <h4>원인</h4>
+        <p>
+          이 프로젝트는 Spring Boot 4.0.6 + 모듈형 스타터(<code>spring-boot-starter-webmvc-test</code>)를 사용.
+          Boot 4는 <strong>Jackson 3</strong>을 채택해 <code>ObjectMapper</code>가
+          <code>com.fasterxml.jackson</code>이 아닌 <code>tools.jackson</code> 패키지로 이동했고,
+          <code>@AutoConfigureMockMvc</code>도 모듈화로 패키지 경로가 바뀜.
+        </p>
+        <h4>해결 — 클래스패스 jar에서 실제 패키지 확인 후 import 교정</h4>
+        <div class="fix-block">// 변경 전 (Spring Boot 3 / Jackson 2 기준)
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+
+// 변경 후 (Spring Boot 4 / Jackson 3)
+import tools.jackson.databind.ObjectMapper;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+// MockMvc 본체(org.springframework.test.web.servlet.*)는 그대로</div>
+        <div class="info-block">💡 추측으로 import를 고치지 않고, Gradle 캐시의 jar 내부(<code>unzip -l</code>)에서
+실제 클래스 경로를 찾아 교정 → 최종 9개 테스트 전부 통과(REST 6 · 댓글 리파지터리 2 · contextLoads 1).</div>
+      </div>
+    </div>
+
   </div>
 
   <!-- ── 설계 결정 ── -->
@@ -815,6 +890,23 @@ Jackson 직접 의존 없이 사용 가능. <code>toString()</code> 경유 BigDe
           환율 API가 USD 기준 KRW·JPY를 반환하면, JPY→KRW 직접 환율 대신
           <code>KRW/USD ÷ JPY/USD</code>로 교차 환율을 계산해 저장.
           API 호출 횟수를 최소화하면서 정확한 환산이 가능.
+        </p>
+      </div>
+      <div class="card">
+        <div class="card-title">REST API — 컨트롤러 로컬 예외 핸들러로 JSON 404 분리</div>
+        <p>
+          기존 <code>GlobalExceptionHandler</code>(<code>@ControllerAdvice</code>)는 <code>error/404</code> HTML 뷰를 반환하므로
+          REST 엔드포인트에 그대로 적용하면 JSON 대신 HTML이 응답됨. <code>SubscriptionApiController</code> 안에
+          컨트롤러 로컬 <code>@ExceptionHandler</code>를 두어, 같은 예외에 대해 REST는 <code>{"message": …}</code> JSON 404로 응답.
+          컨트롤러 로컬 핸들러가 <code>@ControllerAdvice</code>보다 우선하므로 MVC 흐름은 그대로 유지.
+        </p>
+      </div>
+      <div class="card">
+        <div class="card-title">댓글(Comment) — 단방향 @ManyToOne</div>
+        <p>
+          댓글은 <code>Subscription</code>을 <code>@ManyToOne</code>으로만 참조하고, 구독 쪽에는 컬렉션을 두지 않음.
+          엔티티를 단순하게 유지하고 양방향 동기화 부담을 피하기 위한 선택.
+          구독별 조회는 <code>CommentRepository.findBySubscriptionId(id)</code> 메서드 쿼리로 해결.
         </p>
       </div>
     </div>

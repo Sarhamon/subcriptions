@@ -291,12 +291,16 @@ code {
       <div class="stat-label">팀원</div>
     </div>
     <div style="text-align:center">
-      <div class="stat">14</div>
+      <div class="stat">18</div>
       <div class="stat-label">Java 파일</div>
     </div>
     <div style="text-align:center">
-      <div class="stat">10</div>
+      <div class="stat">15</div>
       <div class="stat-label">URL 라우트</div>
+    </div>
+    <div style="text-align:center">
+      <div class="stat">9</div>
+      <div class="stat-label">테스트</div>
     </div>
   </div>
 </div>
@@ -381,6 +385,38 @@ public String handleNotFound(...) {
   </div>
 </div>
 
+<!-- ══════════════ SLIDE — A: 댓글 엔티티 (14장) ══════════════ -->
+<div class="slide layout-split">
+  <div class="presenter p-a">이태경</div>
+  <div class="split-left">
+    <div class="slide-label">댓글 도메인</div>
+    <h2>Comment 엔티티</h2>
+    <div class="accent-line"></div>
+    <p class="sub">구독 1건에 메모(댓글)를 남기는 도메인.<br>
+      구독 → 댓글 <strong style="color:var(--text)">단방향 @ManyToOne</strong>으로<br>
+      엔티티 오염 없이 최소 연관만 둔다.</p>
+    <div style="margin-top:18px;">
+      <span class="tag t-dep">@ManyToOne</span>
+      <span class="tag t-ui">JpaRepository</span>
+      <span class="tag t-api">data.sql 시드</span>
+    </div>
+  </div>
+  <div class="split-right">
+    <div class="card">
+      <div class="card-title">Comment — 핵심 필드</div>
+      <p><code>id</code> · <code>subscription</code>(FK) · <code>nickname</code> · <code>body</code></p>
+      <div class="code-block info" style="font-size:12px;margin-top:8px;">@ManyToOne
+@JoinColumn(name = "subscription_id")
+private Subscription subscription;</div>
+    </div>
+    <div class="card">
+      <div class="card-title">CommentRepository — 메서드 쿼리</div>
+      <div class="code-block fix" style="font-size:12px;">List&lt;Comment&gt; findBySubscriptionId(Long id);</div>
+      <p style="font-size:12px;margin-top:6px;">구독 1번에 댓글 2건, 4번에 1건 시드.</p>
+    </div>
+  </div>
+</div>
+
 <!-- ══════════════ SLIDE 4 — B: 구독 Service ══════════════ -->
 <div class="slide layout-two">
   <div class="presenter p-b">김세진</div>
@@ -451,6 +487,42 @@ while (!nextRenewalDate.isAfter(today)) {
         <div class="card-title">PRG 패턴</div>
         <p style="font-size:13px;">POST 처리 후 <code>redirect:</code>로 GET 유도.<br>
         브라우저 새로고침 시 중복 저장 방지.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ SLIDE — B: REST API (10·11장) ══════════════ -->
+<div class="slide layout-content" style="gap:18px;">
+  <div class="presenter p-b">김세진</div>
+  <div>
+    <div class="slide-label">REST API · JSON</div>
+    <h2>SubscriptionApiController</h2>
+  </div>
+  <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:16px;align-items:start;">
+    <div class="card">
+      <div class="card-title">/api/subscriptions — JSON CRUD</div>
+      <table class="route-table">
+        <tr><th>Method</th><th>URL</th><th>응답</th></tr>
+        <tr><td><span class="method get">GET</span></td><td><code>/api/subscriptions</code></td><td>목록 JSON</td></tr>
+        <tr><td><span class="method get">GET</span></td><td><code>/api/subscriptions/{id}</code></td><td>단건 JSON</td></tr>
+        <tr><td><span class="method post">POST</span></td><td><code>/api/subscriptions</code></td><td>201 + 생성</td></tr>
+        <tr><td><span class="method post">PATCH</span></td><td><code>/api/subscriptions/{id}</code></td><td>200 + 수정</td></tr>
+        <tr><td><span class="method post">DELETE</span></td><td><code>/api/subscriptions/{id}</code></td><td>204</td></tr>
+      </table>
+    </div>
+    <div class="col" style="gap:12px;">
+      <div class="card">
+        <div class="card-title">@RestController</div>
+        <p style="font-size:13px;">반환 객체를 Jackson이 JSON으로 직렬화.<br>
+        읽기 응답은 기존 <code>SubscriptionView</code> 재사용.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">JSON 404 — 컨트롤러 로컬 핸들러</div>
+        <div class="code-block info" style="font-size:11px;">@ExceptionHandler(
+  SubscriptionNotFoundException.class)
+// → {"message":"...(id=9999)"}  404</div>
+        <p style="font-size:12px;margin-top:6px;">전역 HTML 핸들러보다 우선 → REST는 JSON으로 응답.</p>
       </div>
     </div>
   </div>
@@ -539,6 +611,45 @@ BigDecimal krw =
   <div class="card">
     <p style="font-size:13px;">
       💡 Jackson 직접 import 불필요, 커스텀 record 불필요, 빈 주입 불필요 — 구조 단순화로 의존 문제가 모두 사라짐
+    </p>
+  </div>
+</div>
+
+<!-- ══════════════ SLIDE — C: 테스트 코드 (13·14장) ══════════════ -->
+<div class="slide layout-content" style="gap:18px;">
+  <div class="presenter p-c">이상윤</div>
+  <div>
+    <div class="slide-label">테스트 코드</div>
+    <h2>9개 테스트 · 전부 그린</h2>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;">
+    <div class="card">
+      <div class="card-title">MockMvc REST 통합 테스트 (6)</div>
+      <p style="font-size:13px;"><code>@SpringBootTest</code> + <code>@AutoConfigureMockMvc</code><br>
+      목록·단건·404·생성·수정·삭제 전 시나리오 검증.</p>
+      <div class="code-block fix" style="font-size:11px;margin-top:8px;">mockMvc.perform(post("/api/subscriptions")...)
+  .andExpect(status().isCreated())
+  .andExpect(jsonPath("$.serviceName")
+              .value("TestSub"));</div>
+    </div>
+    <div class="card">
+      <div class="card-title">CommentRepository 테스트 (2) + contextLoads (1)</div>
+      <p style="font-size:13px;"><code>findBySubscriptionId</code>가 시드 댓글을 정확히 반환하는지 검증 — 구독 1번 2건, 댓글 없는 구독 빈 목록.</p>
+    </div>
+  </div>
+  <div class="card">
+    <div class="prob-header">
+      <div class="prob-num">!</div>
+      <div class="prob-title">Spring Boot 4 — 테스트 import 패키지가 바뀌어 있었다</div>
+    </div>
+    <span class="tag t-dep">Spring Boot 4</span><span class="tag t-err">컴파일 오류</span>
+    <div class="code-block err" style="font-size:11px;margin-top:8px;">package com.fasterxml.jackson.databind does not exist
+package org.springframework.boot.test.autoconfigure.web.servlet does not exist</div>
+    <p style="font-size:13px;margin-top:8px;">
+      <strong style="color:#f1f5f9">원인:</strong> Boot 4는 모듈형 스타터 + Jackson 3 →
+      <code>tools.jackson.databind.ObjectMapper</code>,
+      <code>…boot.webmvc.test.autoconfigure.AutoConfigureMockMvc</code><br>
+      <strong style="color:#f1f5f9">해결:</strong> 클래스패스 jar에서 실제 패키지 경로를 찾아 import만 교정 (MockMvc 본체는 그대로)
     </p>
   </div>
 </div>

@@ -18,3 +18,9 @@ INSERT INTO subscription_tags (subscription_id, tag) VALUES
     (5, 'PRODUCTIVITY'),
     (6, 'AI'),
     (7, 'GAME');
+
+-- 일부 구독(id 1, 4)에 달린 댓글 시드. comment 테이블의 subscription_id가 구독을 가리킨다.
+INSERT INTO comment (subscription_id, nickname, body) VALUES
+    (1, '집사', '가족 계정 같이 쓰는 중'),
+    (1, '나',   '4K 요금제로 변경 고려'),
+    (4, '나',   '연간 결제가 더 저렴함');
